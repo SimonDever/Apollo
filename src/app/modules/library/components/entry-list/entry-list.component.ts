@@ -103,10 +103,11 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 			// TODO: scroll to selected entry in table format
 		}
 
-		this.subs.add(this.libraryService.sorting$.pipe(map((field: string) => {
-			if (field) {
-				this.entries = this.libraryService.sortBy(this.entries, field);
-			}
+		this.subs.add(this.libraryService.sorting$.pipe(
+			map((sorting: {field: string, direction: string}) => {
+			//if (sorting.field) {
+				this.entries = this.libraryService.sortBy(this.entries, sorting);
+			//}
 		})).subscribe());
 	}
 

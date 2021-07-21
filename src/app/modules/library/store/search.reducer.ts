@@ -37,6 +37,7 @@ export const initialState: State = {
 		shadowHorOffset: '0',
 		shadowSpread: '4',
 		menuTransparency: false,
+		addYear: false,
 		rowGap: '25',
 		columnGap: '25',
 		untouchedColor: '#00ff00',

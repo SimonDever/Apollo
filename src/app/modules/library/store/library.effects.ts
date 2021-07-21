@@ -68,7 +68,7 @@ export class LibraryEffects {
 	@Effect()
 	loadGenres$: Observable<Action> = this.actions$.pipe(
 		ofType(LibraryActions.LOAD_GENRES),
-		map(() => this.storageService.cleanArrays()),
+		// map(() => this.storageService.cleanArrays()),
 		mergeMap(() => this.storageService.getAllGenres()),
 		map(genres => new LibraryActions.GenresLoaded({ genres: genres })));
 	
@@ -97,14 +97,19 @@ export class LibraryEffects {
 	saveApiKey$ = this.actions$.pipe(
 		ofType(LibraryActions.SAVE_API_KEY),
 		map(action => (action as LibraryActions.SaveApiKey).payload.apiKey),
-		tap(apiKey => this.configService.save(apiKey)));
+		tap(apiKey => this.configService.saveApiKey(apiKey)));
 
 	@Effect()
 	removeEntry$ = this.actions$.pipe(
 		ofType(LibraryActions.REMOVE_ENTRY),
 		map(action => (action as LibraryActions.RemoveEntry).payload.id),
 		mergeMap(id => this.storageService.removeEntry(id)),
-		map(() => new LibraryActions.LoadGenres()));
+		map(() => new LibraryActions.LoadGenres()),
+		tap(() => this.zone.run(() => {
+			if (this.router.url.includes('edit')) {
+				this.router.navigate(['/library']);
+			}
+		})));
 
 	@Effect()
 	searchEntries$: Observable<Action> = this.actions$.pipe(

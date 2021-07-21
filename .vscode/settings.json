@@ -1,7 +1,3 @@
 {
-	"files.exclude": {
-		"**/*.spec.ts": false,
-		"**/*.component.css": false
-	},
-	"eslint.enable": true
+  "typescript.tsdk": "node_modules\\typescript\\lib"
 }

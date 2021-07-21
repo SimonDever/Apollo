@@ -1,22 +1,20 @@
+import { animate, style, transition, trigger } from '@angular/animations';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
-import { Component, OnInit, ViewChild, KeyValueDiffers, ChangeDetectorRef, DoCheck, OnDestroy, AfterViewInit, OnChanges, HostBinding } from '@angular/core';
-import { Entry } from '../../../library/store/entry.model';
-import { StorageService } from '../../../shared/services/storage.service';
-import { ElectronService } from 'ngx-electron';
-import { Store, select } from '@ngrx/store';
-import * as fromLibrary from '../../../library/store';
-import * as LibraryActions from '../../../library/store/library.actions';
-import { trigger, style, transition, animate } from '@angular/animations';
-import { Subscription, Observable } from 'rxjs';
-import { map, take, mergeMap } from 'rxjs/operators';
-import { NgbCheckBox, NgbModalRef, NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
-import { FormGroup, FormBuilder, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ModalDismissReasons, NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { Store } from '@ngrx/store';
+import { ElectronService } from 'ngx-electron';
+import { Observable, Subscription } from 'rxjs';
+import { map, mergeMap, take } from 'rxjs/operators';
+import * as fromLibrary from '../../../library/store';
+import { Entry } from '../../../library/store/entry.model';
+import * as LibraryActions from '../../../library/store/library.actions';
 import { LibraryService } from '../../../shared/services/library.service';
+import { StorageService } from '../../../shared/services/storage.service';
 
 const uuid = require('uuid/v4');
-
-// TODO: auto cull of posters previously downloaded but not in use
 
 @Component({
 	selector: 'app-settings-list',
@@ -160,19 +158,19 @@ export class SettingsListComponent implements OnInit, /* DoCheck,  */OnDestroy {
 
 		switch (this.mode) {
 			case 'Deleting library': {
-				console.log(`progress :: estimatedCount=${this.estimatedCount} deletedCount=${this.deletedCount}`);
+				console.debug(`progress :: estimatedCount=${this.estimatedCount} deletedCount=${this.deletedCount}`);
 				return Math.ceil((this.deletedCount / this.estimatedCount) * 100);
 			}
 			case 'Importing library' || 'Adding entries': {
-				console.log(`progress :: estimatedCount=${this.estimatedCount} importCount=${this.importCount}`);
+				console.debug(`progress :: estimatedCount=${this.estimatedCount} importCount=${this.importCount}`);
 				return Math.ceil((this.importCount / this.estimatedCount) * 100);
 			}
 			case 'Parsing library': {
-				console.log(`progress :: estimatedCount=${this.estimatedCount} parsedCount=${this.parsedCount}`);
+				console.debug(`progress :: estimatedCount=${this.estimatedCount} parsedCount=${this.parsedCount}`);
 				return Math.ceil((this.parsedCount / this.estimatedCount) * 100);
 			}
 			case 'Loading posters': {
-				console.log(`progress :: estimatedCount=${this.estimatedCount} posterCount=${this.posterCount}`);
+				console.debug(`progress :: estimatedCount=${this.estimatedCount} posterCount=${this.posterCount}`);
 				return Math.ceil((this.posterCount / this.estimatedCount) * 100);
 			}
 			case 'Import complete': {
@@ -190,13 +188,13 @@ export class SettingsListComponent implements OnInit, /* DoCheck,  */OnDestroy {
 	deleteLibrary() {
 		this.mode = 'Deleting library';
 		this.deletedCount = 0;
-		// this.cdRef.detectChanges();
+		this.cdRef.detectChanges();
 		this.store.select(fromLibrary.getTotalEntries).pipe(
 			take(1),
 			mergeMap(count => {
 				console.log('DeleteLibrary :: estimatedCount=', count);
 				this.estimatedCount = count;
-				// this.cdRef.detectChanges();
+				this.cdRef.detectChanges();
 				console.log('DeleteLibrary :: Deleting from database');
 				return this.storageService.deleteAllEntries();
 			}),
@@ -219,7 +217,7 @@ export class SettingsListComponent implements OnInit, /* DoCheck,  */OnDestroy {
 								throw err;
 							}
 							this.deletedCount++;
-							// this.cdRef.detectChanges();
+							this.cdRef.detectChanges();
 						});
 					}
 				});
@@ -240,7 +238,7 @@ export class SettingsListComponent implements OnInit, /* DoCheck,  */OnDestroy {
 	}
 
 	addEntries(event) {
-		this.mode = "Adding entries";
+		this.mode = 'Adding entries';
 		this.importCount = 0;
 		console.log('addEntries :: entry. files:', event.target.files);
 		const files = event.target.files;
@@ -248,7 +246,7 @@ export class SettingsListComponent implements OnInit, /* DoCheck,  */OnDestroy {
 		for (const file of files) {
 			this.libraryService.createEntry(file);
 			this.importCount++;
-			// this.cdRef.detectChanges();
+			this.cdRef.detectChanges();
 		}
 		console.log('addEntries :: finished raising all actions');
 	}
@@ -264,6 +262,10 @@ export class SettingsListComponent implements OnInit, /* DoCheck,  */OnDestroy {
 		} else {
 			this.subs = newSubscription;
 		}
+	}
+
+	update() {
+		this.electronService.ipcRenderer.send('update');
 	}
 	
 	cleanArrays() {
@@ -347,32 +349,32 @@ export class SettingsListComponent implements OnInit, /* DoCheck,  */OnDestroy {
 			console.log('finished one: ', out);
 			newEntries.push(out);
 			this.parsedCount++;
-			// this.cdRef.detectChanges();
+			this.cdRef.detectChanges();
 		}
 
-		this.mode = "Importing library";
+		this.mode = 'Importing library';
 		this.importCount = 0;
-		// this.cdRef.detectChanges();
+		this.cdRef.detectChanges();
 		this.estimatedCount = newEntries.length;
 		for (const entry of newEntries) {
 			this.store.dispatch(new LibraryActions.ImportEntry({ entry: entry }));
 			this.importCount++;
-			// this.cdRef.detectChanges();
+			this.cdRef.detectChanges();
 		}
 
-		this.mode = "Loading posters";
+		this.mode = 'Loading posters';
 		this.posterCount = 0;
-		// this.cdRef.detectChanges();
+		this.cdRef.detectChanges();
 		this.estimatedCount = postersToWrite.length;
 		for (const poster of postersToWrite) {
 			this.fs.writeFile(poster.poster_path, poster.matchData, 'base64', (err) => {
 				err ? console.log(err) : console.log('poster written to disk');
 				this.posterCount++;
-				// this.cdRef.detectChanges();
+				this.cdRef.detectChanges();
 			});
 		}
 
-		this.mode = "Import complete";
+		this.mode = 'Import complete';
 
 		console.log('finished all');
 	}

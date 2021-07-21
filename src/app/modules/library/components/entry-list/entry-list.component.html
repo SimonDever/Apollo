@@ -14,8 +14,8 @@
 				<div class="entry-actions">
 					<div class="entry-title">
 						{{entry.title}}
-						<span *ngIf="entry.year">({{entry.year}})</span>
-						<span *ngIf="!entry.year && entry.release_date">({{entry.release_date | date: 'yyyy'}})</span>
+						<span *ngIf="config.addYear && entry.year">({{entry.year}})</span>
+						<span *ngIf="config.addYear && !entry.year && entry.release_date">({{entry.release_date | date: 'yyyy'}})</span>
 					</div>
 					<div class="entry-blurb">{{entry.overview}}</div>
 					<div class="icon-button-box-horizontal">

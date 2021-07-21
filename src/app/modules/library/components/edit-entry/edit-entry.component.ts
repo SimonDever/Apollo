@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, DoCheck, KeyValueDiffers, NgZone, OnDestroy, OnInit, Renderer2, TemplateRef } from '@angular/core';
+import { ChangeDetectorRef, Component, DoCheck, KeyValueDiffers, NgZone, OnDestroy, OnInit, Renderer2, TemplateRef, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router, RouterStateSnapshot } from '@angular/router';
@@ -56,6 +56,7 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 		private zone: NgZone,
 		private store: Store<fromLibrary.State>,
 		private router: Router,
+		private element: ElementRef,
 		private libraryService: LibraryService,
 		private electronService: ElectronService,
 		private storageService: StorageService,

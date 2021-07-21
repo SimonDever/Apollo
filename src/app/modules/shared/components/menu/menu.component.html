@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-sm navbar-dark fixed-top bg-dark">
 
-	<div class="navbar-brand">
+	<div class="navbar-brand" [title]="appVersion">
 		<img src="./assets/images/logo.png" width="38" height="38" alt="">
 		<div class="app-title d-none">{{ appTitle }}</div>
 	</div>
@@ -24,7 +24,7 @@
 	<div [ngbCollapse]="navbarCollapsed" class="navbar-nav collapse navbar-collapse"	id="navbar">
 		<form [formGroup]="searchForm" (submit)="search()" class="search-form form-inline mt-2 mt-sm-0 ml-0 ml-sm-auto">
 			<input required formControlName="title" class="search-input form-control mr-2"
-				type="search" placeholder="title, keyword, actor" aria-label="Search">
+				type="search" aria-label="Search">
 			<button class="clear-icon" type="reset"></button>
 			<button [disabled]="!searchForm.valid" class="btn btn-outline-light"
 				type="submit">Search</button>
@@ -36,6 +36,11 @@
 					<div class="field-grid two-column">
 						<span class="metadata-field-key">
 							<form [formGroup]="configForm">
+								<span class="inner-grid">
+									<label class="grid-label">Add year in title</label>
+									<span class="grid-value">{{config.addYear ? 'On' : 'Off'}}</span>
+									<input class="grid-input" (change)="save()" #addYear formControlName="addYear" type="checkbox">
+								</span>
 								<span class="inner-grid">
 									<label class="grid-label">Menu transparency</label>
 									<span class="grid-value">{{config.menuTransparency ? 'On' : 'Off'}}</span>
@@ -166,11 +171,11 @@
 		</div>
 		
 		<div ngbDropdown class="mr-3 ml-0">
-			<button id="sortByButton" class="btn btn-outline-light" ngbDropdownToggle>Sort by: {{sorting}}</button>
+			<button id="sortByButton" class="btn btn-outline-light" ngbDropdownToggle>Sort by: {{sorting.field | titlecase}}</button>
 			<div ngbDropdownMenu aria-labelledby="sortByButton" class="dropdown-menu-sortby">
 				<button ngbDropdownItem (click)="sortBy('title')">Title</button>
 				<button ngbDropdownItem (click)="sortBy('year')">Year</button>
-				<button ngbDropdownItem (click)="sortBy('file')">Video File</button>
+				<!-- <button ngbDropdownItem (click)="sortBy('file')">Video File</button> -->
 			</div>
 		</div>
 		

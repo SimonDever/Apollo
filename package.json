@@ -2,14 +2,17 @@
 	"name": "apollo",
 	"productName": "Apollo",
 	"description": "Desktop movie organiser",
-	"version": "0.2.0",
+	"version": "1.0.0",
 	"author": "Simon Dever",
-	"copyright": "© 2019, Simon Dever",
+	"copyright": "© 2021, Simon Dever",
 	"private": true,
 	"license": "UNLICENSED",
 	"main": "app/app.js",
+	"repository": {
+		"url": "https://github.com/simondever/apollo.git"
+	},
 	"updater": {
-		"url": "https://raw.githubusercontent.com/simondever/apollo/electron-upgrade/updates.json"
+		"url": "https://raw.githubusercontent.com/SimonDever/Apollo/master/updates/win32-x64-prod.json"
 	},
 	"build": {
 		"appId": "com.github.simondever.apollo",
@@ -24,10 +27,11 @@
 			"!publisher.json"
 		],
 		"win": {
-			"target": "squirrel"
+			"target": "nsis",
+			"icon": "build/icon.png"
 		},
 		"squirrelWindows": {
-			"iconUrl": "https://github.com/SimonDever/Apollo/blob/master/src/assets/images/logo.png"
+			"iconUrl": "build/icon.png"
 		}
 	},
 	"scripts": {
@@ -37,14 +41,16 @@
 		"test": "ng test",
 		"lint": "ng lint",
 		"electron": "electron .",
-		"debug-electron": "./node_modules/electron/dist/electron.exe ./ --inspect",
-		"start": "ng build && ./node_modules/electron/dist/electron.exe ./",
-		"packager": "node_modules/.bin/electron-packager .",
-		"package": "ng build && electron-builder",
+		"copy7zip": "cp -r node_modules/7zip/7zip-lite app",
+		"debug-electron": "setx ELECTRON_ENABLE_LOGGING true && electron . --enable-logging",
+		"start": "ng build && ./node_modules/electron/dist/electron.exe .",
+		"dont-use-packager": "./node_modules/.bin/electron-packager .",
+		"package": "rm -rf app dist && npm run build && npm run copy7zip && electron-builder",
 		"electron-builder": "electron-builder",
-		"publish": "node_modules/.bin/publish"
+		"publish": "sh ./node_modules/.bin/publish"
 	},
 	"dependencies": {
+		"7zip": "0.0.6",
 		"@angular/animations": "^8.2.8",
 		"@angular/cdk": "^8.2.1",
 		"@angular/cdk-experimental": "^8.2.1",
@@ -67,15 +73,15 @@
 		"bootstrap": "^4.1.2",
 		"bootstrap-switch-button": "^1.1.0",
 		"core-js": "^3.2.1",
-		"electron-devtools-installer": "^2.2.4",
+		"electron-devtools-installer": "^3.1.1",
 		"electron-load-devtool": "^1.2.0",
 		"electron-log": "^4.2.2",
-		"electron-simple-updater": "^1.5.0",
+		"electron-simple-updater": "^2.0.9",
 		"jquery": "^3.4.1",
 		"nedb": "^1.8.0",
 		"ng2-dragula": "^2.1.1",
 		"ngrx-store-freeze": "^0.2.4",
-		"ngx-electron": "^2.0.0",
+		"ngx-electron": "2.2.0",
 		"ngx-virtual-scroller": "^3.0.2",
 		"path": "^0.12.7",
 		"popper.js": "^1.15.0",
@@ -98,10 +104,10 @@
 		"app-builder-lib": "^21.2.0",
 		"codelyzer": "^5.1.2",
 		"electron": "^9.0.0",
-		"electron-builder": "^21.2.0",
-		"electron-builder-squirrel-windows": "^21.2.0",
+		"electron-builder": "^22.9.1",
+		"electron-builder-squirrel-windows": "^22.10.4",
 		"electron-packager": "^14.0.6",
-		"electron-simple-publisher": "^0.6.2",
+		"electron-simple-publisher": "^2.0.0",
 		"get-stdin": "^7.0.0",
 		"jasmine-core": "^3.5.0",
 		"jasmine-spec-reporter": "^4.2.1",

@@ -3,7 +3,9 @@
 # personal config
 api-key.txt
 library-database.json
+code_signing_cert.pfx
 publisher.json
+movieapp.txt
 /src/environments/environment.ts
 /src/environments/environment.prod.ts
 /posters
@@ -52,3 +54,4 @@ yarn-error.log
 # System Files
 .DS_Store
 Thumbs.db
+src/main.log - Shortcut.lnk

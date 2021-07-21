@@ -34,7 +34,7 @@
 								Title
 							</span>
 							<span class="metadata-field-value">
-								<div contenteditable="true" ngDefaultControl formControlName="title"></div>
+								<div contenteditable="true" pasteText ngDefaultControl formControlName="title"></div>
 							</span>
 							<button class="btn btn-outline-light" (click)="removeInputField(input)">Remove</button>
 						</div>
@@ -57,7 +57,7 @@
 								{{ input.label.split('_').join(' ') | titlecase }}
 							</span>
 							<span class="metadata-field-value">
-								<div contenteditable="true" ngDefaultControl formControlName="{{ input.formControlName }}"></div>
+								<div contenteditable="true" pasteText ngDefaultControl formControlName="{{ input.formControlName }}"></div>
 							</span>
 							<button class="btn btn-outline-light" (click)="removeInputField(input)">Remove</button>
 						</div>

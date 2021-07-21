@@ -37,20 +37,20 @@ export class StorageService {
 							console.error(writeError);
 							return;
 						}
-						//console.log('StorageService :: backup() - Backup file written to disk');
+						//console.log('StorageService - backup() - Backup file written to disk');
 					});
 			}
 		});
 	}
 
 	getConfig() {
-		//console.log(`StorageService :: getConfig() - database:`, this.config);
+		//console.log(`StorageService - getConfig() - database:`, this.config);
 		return new Observable(subscriber => {
 			this.config.find({ id: 'config' }, (err, configItems) => {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					//console.log('StorageService :: getConfig() - items:', configItems[0]);
+					//console.log('StorageService - getConfig() - items:', configItems[0]);
 					subscriber.next(configItems[0]);
 				}
 			});
@@ -88,7 +88,7 @@ export class StorageService {
 	}
 
 	deleteAllEntries(): Observable<number> {
-		console.log(`StorageService :: deleteAllEntries :: entry`);
+		console.log(`StorageService - deleteAllEntries - entry`);
 		return new Observable(subscriber => {
 			this.datastore.remove({}, { multi: true }, function (err, countRemoved) {
 				if (err) {
@@ -96,7 +96,7 @@ export class StorageService {
 				} else {
 					subscriber.next(countRemoved);
 				}
-				console.log('StorageService :: deleteAllEntries :: complete');
+				console.log('StorageService - deleteAllEntries - complete');
 			});
 		})
 	}
@@ -122,10 +122,12 @@ export class StorageService {
 				}
 
 				let genreList = [];
-				for(const entry of entries) {
+				for (const entry of entries) {
 					if (entry.genres) {
 						if (Array.isArray(entry.genres)) {
 							genreList = [...genreList, ...entry.genres.map(genre => genre.name)];
+						} else if (typeof entry.genres === 'object') {
+							genreList = [...genreList, ...[entry.genres.name]];
 						} else {
 							genreList = [...genreList, ...entry.genres.split(',')];
 						}
@@ -141,8 +143,8 @@ export class StorageService {
 				console.log('genreList:', genreList);
 
 				subscriber.next(genreList);
-			})
-		})
+			});
+		});
 	}
 
 	getEntry(id: string): Observable<Entry> {
@@ -184,13 +186,13 @@ export class StorageService {
 	}
 
 	getAllEntries(): Observable<Entry[]> {
-		//console.log(`StorageService :: load :: this.datastore.filename: ${this.datastore.filename}`);
+		//console.log(`StorageService - load - this.datastore.filename: ${this.datastore.filename}`);
 		return new Observable(subscriber => {
 			this.datastore.find({}, (err, entries) => {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					console.log('getAllEntries :: entries', entries);
+					console.log('getAllEntries - entries', entries);
 					subscriber.next(entries);
 				}
 			});
@@ -202,7 +204,7 @@ export class StorageService {
 		if (parts.length === 2) {
 			const toFind = {};
 			let field = parts[0].toLowerCase();
-			if(field === 'genre') {
+			if (field === 'genre') {
 				field = 'genres';
 			}
 			const keyword = { $regex: new RegExp(parts[1], 'i')};
@@ -267,71 +269,71 @@ export class StorageService {
 	}
 
 	cleanArrays(): Observable<Entry[]> {
-		console.debug('cleanArrays :: function entry');
+		console.debug('storageService.cleanArrays - function entry');
 		return new Observable(subscriber => {
 			this.datastore.find({}, (err, entries) => {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					console.debug('cleanArrays :: entries before clean', entries);
-					for(const entry of entries) {
+					console.debug('storageService.cleanArrays - entries before clean', entries);
+					for (const entry of entries) {
 						for (const prop in entry) {
 							if (prop !== 'sort_order' && entry[prop] != null) {
 								if (Array.isArray(entry[prop])) {
-									console.debug('storageService :: cleanArrays - found an array - converting');
-									console.debug(`storageService :: cleanArrays :: before conversion`, entry[prop]);
+									console.debug('storageService.cleanArrays - found an array - converting');
+									console.debug(`storageService.cleanArrays - before conversion`, entry[prop]);
 									entry[prop] = entry[prop].map(e => e.name).join(', ');
-									console.debug(`storageService :: cleanArrays :: after conversion`, entry[prop]);
+									console.debug(`storageService.cleanArrays - after conversion`, entry[prop]);
 								} else if (typeof entry[prop] === 'object') {
-									console.debug('storageService :: cleanArrays :: typeof entry[prop] is object');
-									console.debug(`storageService :: cleanArrays :: before conversion`, entry[prop]);
+									console.debug('storageService.cleanArrays - typeof entry[prop] is object');
+									console.debug(`storageService.cleanArrays - before conversion`, entry[prop]);
 									entry[prop] = entry[prop].name;
-									console.debug(`storageService :: cleanArrays :: after conversion`, entry[prop]);
+									console.debug(`storageService.cleanArrays - after conversion`, entry[prop]);
 								}
 							} else {
-								console.debug('cleanArrays :: entry[prop] is null, prop is ' + prop);
+								console.debug('storageService.cleanArrays - entry[prop] is null, prop is ' + prop);
 							}
 						}
 					}
 
-					console.debug('cleanArrays :: entries after clean', entries);
+					console.debug('cleanArrays - entries after clean', entries);
 
 					/* this.datastore.remove({}, { multi: true}, (err, numRemoved) => {
 						if (err) {
 							console.error('error', err);
 						}
 						console.debug('number removed:', numRemoved); */
-						//console.debug('cleanArrays :: updating entries', entries);
+						//console.debug('cleanArrays - updating entries', entries);
 
 						/* this.datastore.insert(entries, (err, entriesOut) => {
 							if (err) {
-								console.error('cleanArray :: error inserting after cleaning');
+								console.error('cleanArray - error inserting after cleaning');
 								subscriber.error(err);
 							}
-							console.debug('cleanArray :: new entries after insert: ', entriesOut);
+							console.debug('cleanArray - new entries after insert: ', entriesOut);
 							subscriber.next(entriesOut);
 						}); */
 
 						const cleanEntries = [];
-						console.debug('cleanArray :: entries.length:', entries.length);
+						console.debug('cleanArray - entries.length:', entries.length);
 						let i = 0;
 						for (const entry of entries) {
 							cleanEntries.push(new Observable(subscriber => {
 								this.datastore.update({ _id: entry._id }, entry, { returnUpdatedDocs: true }, (err, numAffected, affectedDocuments) => {
 									if (err) {
-										console.error('cleanArray :: error inserting after cleaning');
+										console.error('cleanArray - error inserting after cleaning');
 										subscriber.error(err);
 									}
-									console.debug('cleanArray :: new entries after insert ('+numAffected+'):', affectedDocuments);
-									console.debug('cleanArray :: ', ++i);
+									console.debug('cleanArray - new entries after insert ('+numAffected+'):', affectedDocuments);
+									console.debug('cleanArray - ', ++i);
 									subscriber.next(affectedDocuments);
 								});
 							}));
 						}
 
 						forkJoin(cleanEntries).subscribe(entries => {
-							console.debug('cleanArray :: forkJoin :: entries.length', entries.length);
-							console.debug('cleanArray :: forkJoin :: entries', entries);
+							console.debug('cleanArray - forkJoin - entries.length', entries.length);
+							console.debug('cleanArray - forkJoin - entries', entries);
 							subscriber.next(entries);
 						});
 						
@@ -401,14 +403,14 @@ export class StorageService {
 	}
 
 	addEntry(newEntry: Entry): Observable<Entry> {
-		console.log('storageService :: addEntry :: entry');
+		console.log('storageService - addEntry - entry');
 		return new Observable(subscriber => {
 			this.datastore.insert(newEntry, (err, entry) => {
 				if (err) {
 					subscriber.error(err);
-					console.log('storageService :: addEntry :: err', err);
+					console.log('storageService - addEntry - err', err);
 				}
-				console.log('storageService :: addEntry :: newEntry', entry);
+				console.log('storageService - addEntry - newEntry', entry);
 				subscriber.next(entry);
 			});
 		});
