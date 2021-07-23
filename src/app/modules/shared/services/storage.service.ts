@@ -209,39 +209,42 @@ export class StorageService {
 	}
 	
 	searchEntry(input: string): Observable<Entry[]> {
-		const parts = input.split(':');
-		parts[0] = parts[0] ? parts[0].trim().toLowerCase() : '';
-		parts[1] = parts[1] ? parts[1].trim().toLowerCase() : '';
-		const field = parts[0];
-		const value = parts[1];
-		if (parts.length === 2) {
-			const toFind = {};
-			if (field === 'genre' || field === 'genres'){
-				return this.searchGenres(parts);
-			} else if (field === 'starring' || field === 'stars' || field === 'actors' || field === 'cast') {
-				return this.searchActors(parts);
-			}
-			const keyword = { $regex: new RegExp(value, 'i')};
-			toFind[field] = keyword;
-			// console.log(toFind);
-			return new Observable(subscriber => {
-				this.datastore.find(toFind, (err, entries) => {
-					if (err) {
-						subscriber.error(err);
-					} else {
-						// console.log(`searchEntry(${input}) results:`);
-						// console.log(entries);
-						subscriber.next(entries);
-					}
+		if (input.includes(':')) {
+			const parts = input.split(':');
+			if (parts.length === 2) {
+				const field = parts[0] ? parts[0].trim().toLowerCase() : '';
+				const value = parts[1] ? parts[1].trim().toLowerCase() : '';
+				console.log(`searchEntry field:value = ${field}:${value}`);
+				const toFind = {};
+				if (field === 'genre' || field === 'genres') {
+					console.log('looking up genres');
+					return this.searchGenres(value);
+				} else if (field === 'starring' || field === 'stars' || field === 'actors' || field === 'cast') {
+					console.log('looking up actors');
+					return this.searchActors(value);
+				}
+				const keyword = { $regex: new RegExp(value, 'i')};
+				toFind[field] = keyword;
+				console.log('toFind', toFind);
+				return new Observable(subscriber => {
+					this.datastore.find(toFind, (err, entries) => {
+						if (err) {
+							subscriber.error(err);
+						} else {
+							console.log(`searchEntry(${input}) results:`);
+							console.log(entries);
+							subscriber.next(entries);
+						}
+					});
 				});
-			});
+			}
 		} else {
-			return this.searchAll(parts);
+			return this.searchAll(input);
 		}
 	}
 
-	searchActors(parts): Observable<Entry[]> {
-		const keyword = new RegExp(parts[0], 'i');
+	searchActors(value): Observable<Entry[]> {
+		const keyword = new RegExp(value, 'i');
 		return new Observable(subscriber => {
 			this.datastore.find({
 				// This doesn't take into account custom fields
@@ -255,16 +258,15 @@ export class StorageService {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					// console.log(`searchEntry(${input}) results:`);
-					// console.log(entries);
+					console.log(`searchActors(${value}) results:`, entries);
 					subscriber.next(entries);
 				}
 			});
 		});
 	}
 
-	searchGenres(parts): Observable<Entry[]> {
-		const keyword = new RegExp(parts[0], 'i');
+	searchGenres(value): Observable<Entry[]> {
+		const keyword = new RegExp(value, 'i');
 		return new Observable(subscriber => {
 			this.datastore.find({
 				// This doesn't take into account custom fields
@@ -276,16 +278,15 @@ export class StorageService {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					// console.log(`searchEntry(${input}) results:`);
-					// console.log(entries);
+					console.log(`searchGenres(${value}) results:`, entries);
 					subscriber.next(entries);
 				}
 			});
 		});
 	}
 
-	searchAll(parts): Observable<Entry[]> {
-		const keyword = new RegExp(parts[0], 'i');
+	searchAll(input): Observable<Entry[]> {
+		const keyword = new RegExp(input, 'i');
 		return new Observable(subscriber => {
 			this.datastore.find({
 				// This doesn't take into account custom fields
@@ -319,8 +320,7 @@ export class StorageService {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					// console.log(`searchEntry(${input}) results:`);
-					// console.log(entries);
+					console.log(`searchAll(${input}) results:`, entries);
 					subscriber.next(entries);
 				}
 			});
