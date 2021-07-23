@@ -132,6 +132,15 @@ export class StorageService {
 							genreList = [...genreList, ...entry.genres.split(',')];
 						}
 					}
+					if (entry.genre) {
+						if (Array.isArray(entry.genre)) {
+							genreList = [...genreList, ...entry.genre.map(genre => genre.name)];
+						} else if (typeof entry.genre === 'object') {
+							genreList = [...genreList, ...[entry.genre.name]];
+						} else {
+							genreList = [...genreList, ...entry.genre.split(',')];
+						}
+					}
 				}
 
 				genreList = genreList.map(genre => {
@@ -206,6 +215,8 @@ export class StorageService {
 			let field = parts[0].toLowerCase();
 			if (field === 'genre') {
 				field = 'genres';
+			} else if (field === 'starring' || field === 'stars') {
+				field = 'actors';
 			}
 			const keyword = { $regex: new RegExp(parts[1], 'i')};
 			toFind[field] = keyword;
@@ -229,6 +240,8 @@ export class StorageService {
 					$or: [
 						{overview: keyword},
 						{release_date: keyword},
+						{year: keyword},
+						{released: keyword},
 						{original_title: keyword},
 						{media_type: keyword},
 						{original_language: keyword},
@@ -238,7 +251,10 @@ export class StorageService {
 						{original_name: keyword},
 						{known_for: keyword},
 						{belongs_to_collection: keyword},
+						{genre: keyword},
 						{genres: keyword},
+						{actors: keyword},
+						{director: keyword},
 						{production_companies: keyword},
 						{production_countries: keyword},
 						{spoken_languages: keyword},

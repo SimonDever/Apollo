@@ -29,7 +29,7 @@ import * as packageJson from '../../../../../../package.json';
 	styleUrls: ['./menu.component.css'],
 })
 export class MenuComponent implements OnInit, DoCheck {
-	alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+	alphabet = '0ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 	appTitle: string;
 	appVersion: string;
 	navbarCollapsed: boolean;

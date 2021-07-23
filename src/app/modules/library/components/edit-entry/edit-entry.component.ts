@@ -177,11 +177,7 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 		this.tempList.push(newField);
 		this.refreshForm();
 	}
-
-	getGenres(genres) {
-		return genres.map(e => e.name).join(', ');
-	}
-
+	
 	refreshForm() {
 		console.log('refreshForm - clearing entryForm. inputList:', this.inputList);
 		this.entryForm = this.formBuilder.group({});
