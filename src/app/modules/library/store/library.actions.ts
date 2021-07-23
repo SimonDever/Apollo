@@ -2,6 +2,12 @@ import { Update } from '@ngrx/entity';
 import { Action } from '@ngrx/store';
 import { Entry } from './entry.model';
 
+export const RELOAD = '[Library] Reload';
+export class Reload implements Action {
+	readonly type = RELOAD;
+	constructor(public payload: { entries: Entry[] }) { }
+}
+
 export const LOAD = '[Library] Load';
 export class Load implements Action {
 	readonly type = LOAD;
@@ -17,7 +23,7 @@ export class LoadGenres implements Action {
 export const LOADED = '[Library] Loaded';
 export class Loaded implements Action {
 	readonly type = LOADED;
-	constructor(public payload: { entries: Entry[] }) { }
+	constructor(public payload: { entries: Entry[], navigate: boolean }) { }
 }
 
 export const GENRES_LOADED = '[Library] Genres Loaded';
@@ -170,6 +176,7 @@ export type All =
 	ShowResults |
 	DeselectEntry |
 	Load |
+	Reload |
 	NeedEntries |
 	LoadGenres |
 	Loaded |

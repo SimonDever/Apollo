@@ -343,89 +343,89 @@ export class StorageService {
 		});
 	}
 
-	changeAllPathsTo(): Observable<Entry> {
+	changeAllPathsTo(path: string): Observable<Entry[]> {
 
-		const newPath = `\\\\Synology\\Movies\\`;
-		//console.log(`Changing all movie file paths to ${newPath}`);
+		const newPath = path;
+		console.debug(`Changing all movie file paths to ${newPath}`);
 
 		return new Observable(subscriber => {
-			//console.log('finding entries');
+			console.debug('finding entries');
 			this.datastore.find({}, (err, entries) => {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					//console.log(`found ${entries.length} entries`);
+					console.debug(`found ${entries.length} entries`);
 
 					const newEntries = [];
-					for(const entry of entries) {
+					for (const entry of entries) {
 						let newFileValue = entry.file;
 						entry.files = undefined;
 						entry.path = undefined;
 						newFileValue = this.getFileFromPath(newFileValue);
 						newFileValue = newPath + newFileValue;
-						//console.log(`changed ${entry.file} to ${newFileValue}`);
+						console.debug(`changed ${entry.file} to ${newFileValue}`);
 						entry.file = newFileValue;
 						newEntries.push(entry);
 					}
 
-					//console.log('all new entries', entries);
+					console.debug('all new entries', entries);
 
-					this.datastore.remove({}, { multi: true}, (err, numRemoved) => {
-						if (err) {
-							console.error('error', err);
+					this.datastore.remove({}, { multi: true}, (err1, numRemoved) => {
+						if (err1) {
+							console.error('error', err1);
 						}
-						//console.log('number removed:', numRemoved);
-						//console.log('updating entries', newEntries);
-						this.datastore.insert(newEntries, (err, entriesOut) => {
-							if (err) {
-								subscriber.error(err);
+						console.debug('number removed:', numRemoved);
+						console.debug('updating entries', newEntries);
+						this.datastore.insert(newEntries, (err2, entriesOut) => {
+							if (err2) {
+								subscriber.error(err2);
 							}
-							//console.log('new entries after insert: ', entriesOut);
+							console.debug('new entries after insert: ', entriesOut);
 							subscriber.next(entriesOut);
 						});
 					});
 				}
 			});
-		})
+		});
 	}
 
 	exists(file: string): Observable<Entry> {
 		return new Observable(subscriber => {
 			this.datastore.find({ file: new RegExp(file, 'i') }, (err, exists) => {
 				if (err) {
-					//console.log(`exists(${file}) error:`, err);
+					console.debug(`exists(${file}) error:`, err);
 					subscriber.error(err);
 				}
-				//console.log(`exists(${file})`, exists);
+				console.debug(`exists(${file})`, exists);
 				subscriber.next(exists);
 			});
 		});
 	}
 
 	addEntry(newEntry: Entry): Observable<Entry> {
-		console.log('storageService - addEntry - entry');
+		console.debug('storageService - addEntry - entry');
 		return new Observable(subscriber => {
 			this.datastore.insert(newEntry, (err, entry) => {
 				if (err) {
 					subscriber.error(err);
-					console.log('storageService - addEntry - err', err);
+					console.debug('storageService - addEntry - err', err);
 				}
-				console.log('storageService - addEntry - newEntry', entry);
+				console.debug('storageService - addEntry - newEntry', entry);
 				subscriber.next(entry);
 			});
 		});
 	}
 
 	removeEntry(id: string): Observable<number> {
-		//console.log('attempting to removeEntry(id)');
-		//console.log(id);
+		//console.debug('attempting to removeEntry(id)');
+		//console.debug(id);
 		return new Observable(subscriber => {
 			this.datastore.remove({ id: id }, {}, (err, numRemoved) => {
 				if (err) {
 					subscriber.error(err);
 				}
-				//console.log('removeEntry(id)');
-				//console.log(numRemoved);
+				//console.debug('removeEntry(id)');
+				//console.debug(numRemoved);
 				subscriber.next(numRemoved);
 			});
 		});
@@ -440,7 +440,7 @@ export class StorageService {
 		if (parts && parts.length) {
 			result = { mime: parts[1], data: parts[2] };
 		} else {
-			//console.log('no cigar');
+			//console.debug('no cigar');
 		}
 		return result;
 	}

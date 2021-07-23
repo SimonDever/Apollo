@@ -52,6 +52,32 @@ setupVLC = () => {
 	});
 }
 
+setDevToolsHotkey = () => {
+	ipcMain.on('devtools-hotkey', (event, arg) => {
+		mainWindow.webContents.toggleDevTools();
+	});
+
+	ipcMain.on('maximize', (event, arg) => {
+		if (mainWindow.isMaximized()){
+			mainWindow.unmaximize();
+		} else {
+			mainWindow.maximize();
+		}
+	});
+
+	ipcMain.on('minimize', (event, arg) => {
+		mainWindow.minimize();
+	});
+
+	ipcMain.on('quit', (event, arg) => {
+		if (mainWindow) {
+			mainWindow.close();
+		} else {
+			app.quit();
+		}
+	});
+}
+
 installReduxDevTools = () => {
 	installExtension(REDUX_DEVTOOLS)
 			.then((name) => console.log(`Added Extension:  ${name}`))
@@ -60,11 +86,10 @@ installReduxDevTools = () => {
 
 setupMainWindow = () => {
 	mainWindow = new BrowserWindow({
-		// autoHideMenuBar: true,
-		// titleBarStyle: 'hiddenInset',
-		// setMenuBarVisibility: true,
-		// transparent: true,
-		// frame: false
+		icon: __dirname + '/assets/images/icons/logo.ico',
+		autoHideMenuBar: true,
+		setMenuBarVisibility: false,
+		frame: false,
 		webPreferences: {
 			nodeIntegration: true,
 			enableRemoteModule: true
@@ -72,7 +97,7 @@ setupMainWindow = () => {
 		show: false
 	});
 
-	mainWindow.webContents.session.clearCache(function () { });
+	mainWindow.webContents.session.clearCache();
 	
 	/* const reduxDevToolsExtId = 'lmhkpmbekcpmknklioeibfkpmmfibljd';
 	const path = `${app.getPath('userData')}\\extensions\\${reduxDevToolsExtId}`;
@@ -106,6 +131,7 @@ setupMainWindow = () => {
 }
 
 setupEventHandlers = () => {
+	setDevToolsHotkey();
 	setupVLC();
 
 	app.on('second-instance', (event, commandLine, workingDirectory) => {

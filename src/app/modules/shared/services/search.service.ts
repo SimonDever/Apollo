@@ -56,7 +56,7 @@ export class SearchService {
 				data = JSON.parse(data);
 				console.error('Error retrieving search results');
 				console.error(data);
-				this.toastService.showDanger(data.status_message);
+				//this.toastService.showDanger(data.status_message);
 				this.store.dispatch(new LibraryActions.ShowMetadataResults({
 					results: {
 						page: 1,

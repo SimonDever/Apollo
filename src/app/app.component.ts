@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { trigger, state, style, transition, animate } from '@angular/animations';
+import { ElectronService } from 'ngx-electron';
 
 @Component({
 	selector: 'app-root',
@@ -9,6 +10,16 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
 
 })
 export class AppComponent {
+	
+	constructor(private electronService: ElectronService) {
+	}
 
-	constructor() {}
+	@HostListener('body:keydown', ['$event.key'])
+	devToolsHotkeyListener(key: string) {
+		switch (key) {
+			case 'F12':
+				this.electronService.ipcRenderer.send('devtools-hotkey');
+				break;
+		}
+	}
 }

@@ -37,6 +37,11 @@ export function reducer(state = initialState, action: LibraryActions.All): State
 			return adapter.removeAll(state);
 		}
 
+		case LibraryActions.RELOAD: {
+			adapter.removeAll(state);
+			return adapter.addAll(action.payload.entries, state);
+		}
+
 		default: {
 			return state;
 		}

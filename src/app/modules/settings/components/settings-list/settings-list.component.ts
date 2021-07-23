@@ -1,5 +1,5 @@
 import { animate, style, transition, trigger } from '@angular/animations';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -51,6 +51,7 @@ export class SettingsListComponent implements OnInit, /* DoCheck,  */OnDestroy {
 	closeResult: string;
 	modalRef: NgbModalRef;
 	apiKeyForm: FormGroup;
+	changePathForm: FormGroup;
 	selected: boolean;
 	entryCount$: Observable<number>;
 	importCount: number;
@@ -73,6 +74,7 @@ export class SettingsListComponent implements OnInit, /* DoCheck,  */OnDestroy {
 		this.path = this.electronService.remote.require('path');
 		this.userDataFolder = this.electronService.remote.app.getPath('userData');
 		this.apiKeyForm = this.formBuilder.group({apiKey: ''});
+		this.changePathForm = this.formBuilder.group({filepath: ''});
 		this.entryCount$ = this.store.select(fromLibrary.getTotalEntries);
 	}
 
@@ -96,7 +98,7 @@ export class SettingsListComponent implements OnInit, /* DoCheck,  */OnDestroy {
 			this.subs.unsubscribe();
 		}
 	}
-
+	
 	isKeyEnumerable(key: string) {
 		return key !== 'id' && key !== '_id' && key !== 'poster_path' && key !== 'file' && key !== 'touched' && key !== 'gotDetails';
 	}
@@ -133,6 +135,16 @@ export class SettingsListComponent implements OnInit, /* DoCheck,  */OnDestroy {
 			this.closeResult = `Dismissed with: ${this.getDismissReason(reason)}`;
 		});
 	}
+
+	showChangePathDialog(content) {
+		this.modalRef = this.modalService.open(content);
+		this.modalRef.result.then((result) => {
+			this.closeResult = `Closed with: ${result}`;
+		}, (reason) => {
+			this.closeResult = `Dismissed with: ${this.getDismissReason(reason)}`;
+		});
+	}
+
 
 	getDismissReason(reason: any): string {
 		if (reason === ModalDismissReasons.ESC) {
@@ -251,16 +263,21 @@ export class SettingsListComponent implements OnInit, /* DoCheck,  */OnDestroy {
 		console.log('addEntries :: finished raising all actions');
 	}
 
-	changeAllFilePaths(filepath: string) {
-		// TODO: implement function to change all database entry paths but not file names
-		const newSubscription = this.storageService.changeAllPathsTo().pipe(map(done => {
-			console.log('changeAllFilePaths sub result:', done);
-		})).subscribe();
-
-		if (this.subs) {
-			this.subs.add(newSubscription);
-		} else {
-			this.subs = newSubscription;
+	changeAllFilePaths() {
+		this.modalRef.close('save');
+		const filepath = this.changePathForm.value.filepath;
+		if (filepath) {
+			console.debug(`changeAllFilePaths to ${filepath}`);
+			const newSubscription = this.storageService.changeAllPathsTo(filepath).pipe(
+				map(entries => {
+					console.debug(`changeAllFilePaths to ${filepath}. entries:`, entries);
+					this.store.dispatch(new LibraryActions.Reload({entries}));
+				})).subscribe();
+			if (this.subs) {
+				this.subs.add(newSubscription);
+			} else {
+				this.subs = newSubscription;
+			}
 		}
 	}
 

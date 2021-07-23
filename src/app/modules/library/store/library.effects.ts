@@ -55,7 +55,8 @@ export class LibraryEffects {
 	@Effect()
 	loaded$: Observable<Action> = this.actions$.pipe(
 		ofType(LibraryActions.LOADED),
-		tap(() =>	this.router.navigate(['/library'])),
+		map(action => (action as LibraryActions.Loaded).payload.navigate),
+		tap((navigate) =>	navigate ? this.router.navigate(['/library']) : {}),
 		map(() => new LibraryActions.LoadGenres()));
 
 	@Effect()
@@ -63,7 +64,14 @@ export class LibraryEffects {
 		ofType(LibraryActions.LOAD),
 		mergeMap(() => this.storageService.getAllEntries()),
 		tap(entries => console.log('load :: getAllEntries():', entries)),
-		map(entries => new LibraryActions.Loaded({ entries: entries })));
+		map(entries => new LibraryActions.Loaded({ entries: entries, navigate: true })));
+
+	@Effect()
+	reload$: Observable<Action> = this.actions$.pipe(
+		ofType(LibraryActions.RELOAD),
+		map(action => (action as LibraryActions.Reload).payload.entries),
+		tap(entries => console.log('reload :: new entries:', entries)),
+		map(entries => new LibraryActions.Loaded({ entries: entries, navigate: false })));
 
 	@Effect()
 	loadGenres$: Observable<Action> = this.actions$.pipe(

@@ -129,6 +129,21 @@ export class MenuComponent implements OnInit, DoCheck {
 		this.navigationService.gotoBookmark(char);
 	}
 
+	quit() {
+		console.debug('quit');
+		this.electronService.ipcRenderer.send('quit');
+	}
+
+	maximize() {
+		console.debug('maximize');
+		this.electronService.ipcRenderer.send('maximize');
+	}
+
+	minimize() {
+		console.debug('minimize');
+		this.electronService.ipcRenderer.send('minimize');
+	}
+
 	gotoGenre(genre: string) {
 		this.navigationService.setSearchResultsParent(this.routerState.url);
 		this.store.dispatch(

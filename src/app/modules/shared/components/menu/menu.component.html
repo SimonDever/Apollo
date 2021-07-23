@@ -1,7 +1,7 @@
-<nav class="navbar navbar-expand-sm navbar-dark fixed-top bg-dark">
+<nav class="navbar navbar-expand-custom navbar-dark fixed-top bg-dark">
 
 	<div class="navbar-brand" [title]="appVersion">
-		<img src="./assets/images/logo.png" width="38" height="38" alt="">
+		<img src="./assets/images/logos/logo.png" width="38" height="38" alt="">
 		<div class="app-title d-none">{{ appTitle }}</div>
 	</div>
 
@@ -15,14 +15,14 @@
 	</ul>
 
 	<button class="navbar-toggler navbar-toggler-right" type="button"
-		(click)="navbarCollapsed= !navbarCollapsed"
+		(click)="navbarCollapsed=!navbarCollapsed"
 		[attr.aria-expanded]="!navbarCollapsed" aria-controls="navbar"
 		aria-expanded="false" aria-label="Toggle navigation">
 		<span class="navbar-toggler-icon"></span>
 	</button>
 
 	<div [ngbCollapse]="navbarCollapsed" class="navbar-nav collapse navbar-collapse"	id="navbar">
-		<form [formGroup]="searchForm" (submit)="search()" class="search-form form-inline mt-2 mt-sm-0 ml-0 ml-sm-auto">
+		<form [formGroup]="searchForm" (submit)="search()" class="search-form">
 			<input required formControlName="title" class="search-input form-control mr-2"
 				type="search" aria-label="Search">
 			<button class="clear-icon" type="reset"></button>
@@ -30,8 +30,8 @@
 				type="submit">Search</button>
 		</form>
 		
-		<div ngbDropdown class="d-inline-block mr-3 ml-0">
-      <button class="btn btn-outline-light" id="dropdownForm1" ngbDropdownToggle>Display</button>
+		<div ngbDropdown class="d-inline-block mr-3 ml-3">
+      <button class="btn btn-outline-light btn-no-outline" id="dropdownForm1" ngbDropdownToggle>Display</button>
       <div ngbDropdownMenu aria-labelledby="dropdownForm1" class="dropdown-menu-right" [style.opacity]="config.menuTransparency ? '0.75' : '1'">
 					<div class="field-grid two-column">
 						<span class="metadata-field-key">
@@ -153,7 +153,7 @@
 		</div>
 		
 		<div ngbDropdown class="mr-3 ml-0" *ngIf="genres && genres.length > 0">
-			<button id="genreButton" class="btn btn-outline-light" ngbDropdownToggle>Genres</button>
+			<button id="genreButton" class="btn btn-outline-light btn-no-outline" ngbDropdownToggle>Genres</button>
 			<div ngbDropdownMenu aria-labelledby="genreButton" class="dropdown-menu-genre">
 				<ng-container *ngFor="let genre of genres">
 					<button ngbDropdownItem (click)="gotoGenre(genre)">{{genre | titlecase}}</button>
@@ -162,7 +162,7 @@
 		</div>
 
 		<div ngbDropdown class="mr-3 ml-0">
-			<button id="bookmarksButton" class="btn btn-outline-light" ngbDropdownToggle>Bookmarks</button>
+			<button id="bookmarksButton" class="btn btn-outline-light btn-no-outline" ngbDropdownToggle>Bookmarks</button>
 			<div ngbDropdownMenu aria-labelledby="bookmarksButton" class="dropdown-menu-bookmarks">
 				<ng-container *ngFor="let char of alphabet">
 					<button ngbDropdownItem (click)="goto(char)">{{char}}</button>
@@ -171,7 +171,7 @@
 		</div>
 		
 		<div ngbDropdown class="mr-3 ml-0">
-			<button id="sortByButton" class="btn btn-outline-light" ngbDropdownToggle>Sort by: {{sorting.field | titlecase}}</button>
+			<button id="sortByButton" class="btn btn-outline-light btn-no-outline" ngbDropdownToggle>Sort by: {{sorting.field | titlecase}}</button>
 			<div ngbDropdownMenu aria-labelledby="sortByButton" class="dropdown-menu-sortby">
 				<button ngbDropdownItem (click)="sortBy('title')">Title</button>
 				<button ngbDropdownItem (click)="sortBy('year')">Year</button>
@@ -180,6 +180,13 @@
 		</div>
 		
 		<input type="file" multiple #entriesInput (change)="addEntries($event);" />
-		<button class="btn btn-outline-light mr-0 ml-0" (click)="entriesInput.value = null; entriesInput.click()">Add Video</button>
+		<button class="btn add-video-button btn-outline-light mr-0 ml-0" (click)="entriesInput.value = null; entriesInput.click()">Add Video</button>
+
+		
+	</div>
+	<div class="window-button-group">
+		<button octicon="dash" class="window-button minimize-button" title="Minimize" (click)="minimize()"></button>
+		<button octicon="screen-full" class="window-button maximize-button" title="Maximize" (click)="maximize()"></button>
+		<button octicon="x" class="window-button quit-button" title="Quit" (click)="quit()"></button>
 	</div>
 </nav>

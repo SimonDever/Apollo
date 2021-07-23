@@ -11,6 +11,15 @@
 
 	scrollbar-color: rgba(175, 175, 175, 0.5) #1d1d1d !important;
 	scrollbar-width: thin !important;
+	
+}
+
+.dropdown-toggle::after {
+	vertical-align: middle;
+}
+
+button:focus {
+	outline: none;
 }
 
 .untouched {
@@ -71,14 +80,6 @@ pre {
 	border: 1px dashed green;
 }
 
-.search-form {
-	/* 	flex-flow: row nowrap;
-	justify-content: center; */
-	/* margin: 0 auto; */
-	/* margin-right: calc(50vw - (16px * 3.5) - 2rem - 200px); */
-	margin-right: auto;
-	margin-left: auto;
-}
 
 .navbar-toggler {
 	height: 38px !important;
@@ -334,6 +335,7 @@ input[type="search"]:not(:valid) ~ .clear-icon {
 .navbar-brand {
 	padding: 0;
 	font-size: 1.5rem;
+	margin-right: 0;
 }
 
 .navbar-links {
@@ -520,6 +522,9 @@ textarea {
 }
 .modal-content {
 	background: #4a4a4a;
+}
+.modal-body {
+	color: #fff;
 }
 
 .modal-footer .btn {

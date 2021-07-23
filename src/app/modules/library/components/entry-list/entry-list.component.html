@@ -68,11 +68,11 @@
 		</button>
 	</div>
 	<div class="modal-body">
-		<p><strong>Are you sure you want to delete this entry?</strong></p>
-		<p class="text-danger"><strong>This operation can not be undone.</strong></p>
+		<p>Are you sure you want to delete this entry?</p>
+		<p class="text-danger"><strong>This operation cannot be undone.</strong></p>
 	</div>
 	<div class="modal-footer">
-		<button type="button" class="btn btn-outline-secondary" (click)="closeDeleteModal('cancel')">Cancel</button>
+		<button type="button" class="btn btn-outline-light" (click)="closeDeleteModal('cancel')">Cancel</button>
 		<button type="button" class="btn btn-danger" (click)="closeDeleteModal('delete')">Delete</button>
 	</div>
 </ng-template>

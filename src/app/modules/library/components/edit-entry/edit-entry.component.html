@@ -24,45 +24,44 @@
 			</ng-container>
 		</div>
 
+		
 
 		<form [formGroup]="entryForm">
-			<div class="right-fields" dragula="inputs" [(dragulaModel)]="inputList">
-				<ng-container *ngFor="let input of inputList">
-					<ng-container *ngIf="input.label === 'title'">
-						<div class="field-grid three-column-reverse">
-							<span class="metadata-field-key">
-								Title
-							</span>
-							<span class="metadata-field-value">
-								<div contenteditable="true" pasteText ngDefaultControl formControlName="title"></div>
-							</span>
-							<button class="btn btn-outline-light" (click)="removeInputField(input)">Remove</button>
-						</div>
-					</ng-container>
+			<div class="right-fields">
+				<div class="field-grid three-column-reverse">
+					<span class="metadata-field-key">
+						Title
+					</span>
+					<span class="metadata-field-value">
+						<div contenteditable="true" pasteText ngDefaultControl formControlName="title"></div>
+					</span>
+				</div>
 
-					<ng-container *ngIf="input.label === 'file'">
-						<div class="field-grid three-column-reverse">
-							<span class="metadata-field-key">Video File</span>
-							<span class="metadata-field-value">{{file}}</span>
-							<input (change)="fileChange($event)" type="file" #fileInput />
-							<button class="btn btn-outline-light" (click)="fileInput.click()">
-								Browse
-							</button>
-						</div>
-					</ng-container>
+				<div class="field-grid three-column-reverse">
+					<span class="metadata-field-key">Video File</span>
+					<span class="metadata-field-value">{{file}}</span>
+					<input (change)="fileChange($event)" type="file" #fileInput />
+					<button class="btn btn-outline-light" (click)="fileInput.click()">
+						Browse
+					</button>
+				</div>
 
-					<ng-container *ngIf="input.label !== 'file' && input.label !== 'title'">
-						<div class="field-grid three-column-reverse">
-							<span class="metadata-field-key">
-								{{ input.label.split('_').join(' ') | titlecase }}
-							</span>
-							<span class="metadata-field-value">
-								<div contenteditable="true" pasteText ngDefaultControl formControlName="{{ input.formControlName }}"></div>
-							</span>
-							<button class="btn btn-outline-light" (click)="removeInputField(input)">Remove</button>
-						</div>
+				<div > <!--dragula="inputs" [(dragulaModel)]="inputList"-->
+					<ng-container *ngFor="let input of inputList">
+						
+						<ng-container *ngIf="input.label !== 'file' && input.label !== 'title'">
+							<div class="field-grid three-column-reverse">
+								<span class="metadata-field-key">
+									{{ input.label.split('_').join(' ') | titlecase }}
+								</span>
+								<span class="metadata-field-value">
+									<div contenteditable="true" pasteText ngDefaultControl formControlName="{{ input.formControlName }}"></div>
+								</span>
+								<button class="btn btn-outline-light" (click)="removeInputField(input)">Remove</button>
+							</div>
+						</ng-container>
 					</ng-container>
-				</ng-container>
+				</div>
 			</div>
 		</form>
 

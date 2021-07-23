@@ -71,7 +71,7 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 	ngOnInit() {
 		console.log('EditEntryComponent Init');
 		this.differ = this.differs.find([]).create();
-		this.inputList = []
+		this.inputList = [];
 		this.tempList = [];
 		this.fieldsRemoved = [];
 		this.searchForm = this.formBuilder.group({ searchTerms: '' });
@@ -89,7 +89,7 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 					entry.title = '';
 				}
 				if (!entry.poster_path) {
-					entry.poster_path = ''
+					entry.poster_path = '';
 				}
 				if (!entry.file) {
 					entry.file = null;
@@ -98,6 +98,7 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 				this.poster_path = entry.poster_path || '';
 				this.file = entry.file || null;
 
+				this.inputList = [];
 				Object.entries(this.entry).forEach(([key, value]) => {
 					if (this.isKeyEnumerable(key)) {
 						const field: InputField = {
@@ -105,12 +106,13 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 							formControlName: key,
 							label: key
 						};
-						this.tempList.push(field);
+						//this.tempList.push(field);
+						this.inputList.push(field);
 					}
 				});
 
-				this.presort();
-				this.resort();
+				//this.presort();
+				//this.resort();
 				this.refreshForm();
 				this.cdRef.detectChanges();
 			}
@@ -128,23 +130,23 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 		this.subs.add(this.metadataSearchResponse$.subscribe(response => this.metadataSearchResult = response));
 	}
 
-	resort() {
+	/* resort() {
 		if (this.entry.sort_order) {
 			this.tempList.forEach((element, index) => this.inputList[this.entry.sort_order[index]] = element);
 			this.tempList = [...this.inputList];
 		} else {
 			this.inputList = [...this.tempList];
 		}
-	}
+	} */
 
-	presort() {
+	/* presort() {
 		this.tempList = this.tempList.sort((a, b) => {
 			if (a.formControlName === 'title') { return -1; }
 			if (b.formControlName === 'title') { return 1; }
 			if (a.formControlName === 'file') { return -1; }
 			return 1;
 		});
-	}
+	} */
 
 	toTitleCase(str) {
 		return str.replace(
@@ -170,18 +172,19 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 			formControlName: fieldName.toLowerCase().replace(' ', '_'),
 			label: this.toTitleCase(fieldName.replace('_', ' ')),
 			value: ''
-		}
+		};
 		this.inputList.push(newField);
 		this.tempList.push(newField);
 		this.refreshForm();
 	}
 
 	getGenres(genres) {
-		return genres.map(e => e.name).join(", ");
+		return genres.map(e => e.name).join(', ');
 	}
 
 	refreshForm() {
-		console.log('refreshForm - chcking for duplicates:', this.inputList);
+		console.log('refreshForm - clearing entryForm. inputList:', this.inputList);
+		this.entryForm = this.formBuilder.group({});
 		this.inputList.forEach(input => {
 			const newFormControl = this.formBuilder.control({ value: input.value, disabled: false });
 			this.entryForm.addControl(input.formControlName, newFormControl);
@@ -394,13 +397,13 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 				poster_path: this.poster_path
 			}
 		};
-		
+		/* 
 		changes.sort_order = [];
 		for (let i = 0; i < this.tempList.length; i++) {
 			changes.sort_order.push(this.inputList.findIndex(e =>
 				e.formControlName === this.tempList[i].formControlName
 			));
-		}
+		} */
 
 		console.log('editEntryComponent :: save :: with new fields:', changes);
 		this.libraryService.saveEntry(changes);
