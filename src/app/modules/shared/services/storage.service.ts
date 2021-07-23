@@ -147,7 +147,7 @@ export class StorageService {
 					return genre.toLowerCase().trim();
 				});
 
-				genreList = Array.from(new Set(genreList));
+				genreList = Array.from(new Set(genreList)).sort();
 
 				console.log('genreList:', genreList);
 
