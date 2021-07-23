@@ -210,15 +210,18 @@ export class StorageService {
 	
 	searchEntry(input: string): Observable<Entry[]> {
 		const parts = input.split(':');
+		parts[0] = parts[0] ? parts[0].trim().toLowerCase() : '';
+		parts[1] = parts[1] ? parts[1].trim().toLowerCase() : '';
+		const field = parts[0];
+		const value = parts[1];
 		if (parts.length === 2) {
 			const toFind = {};
-			let field = parts[0].toLowerCase();
-			if (field === 'genre') {
-				field = 'genres';
-			} else if (field === 'starring' || field === 'stars') {
-				field = 'actors';
+			if (field === 'genre' || field === 'genres'){
+				return this.searchGenres(parts);
+			} else if (field === 'starring' || field === 'stars' || field === 'actors' || field === 'cast') {
+				return this.searchActors(parts);
 			}
-			const keyword = { $regex: new RegExp(parts[1], 'i')};
+			const keyword = { $regex: new RegExp(value, 'i')};
 			toFind[field] = keyword;
 			// console.log(toFind);
 			return new Observable(subscriber => {
@@ -233,44 +236,95 @@ export class StorageService {
 				});
 			});
 		} else {
-			const keyword = new RegExp(parts[0], 'i');
-			return new Observable(subscriber => {
-				this.datastore.find({
-					// This doesn't take into account custom fields
-					$or: [
-						{overview: keyword},
-						{release_date: keyword},
-						{year: keyword},
-						{released: keyword},
-						{original_title: keyword},
-						{media_type: keyword},
-						{original_language: keyword},
-						{title: keyword},
-						{origin_country: keyword},
-						{name: keyword},
-						{original_name: keyword},
-						{known_for: keyword},
-						{belongs_to_collection: keyword},
-						{genre: keyword},
-						{genres: keyword},
-						{actors: keyword},
-						{director: keyword},
-						{production_companies: keyword},
-						{production_countries: keyword},
-						{spoken_languages: keyword},
-						{tagline: keyword}
-					],
-				}, (err, entries) => {
-					if (err) {
-						subscriber.error(err);
-					} else {
-						// console.log(`searchEntry(${input}) results:`);
-						// console.log(entries);
-						subscriber.next(entries);
-					}
-				});
-			});
+			return this.searchAll(parts);
 		}
+	}
+
+	searchActors(parts): Observable<Entry[]> {
+		const keyword = new RegExp(parts[0], 'i');
+		return new Observable(subscriber => {
+			this.datastore.find({
+				// This doesn't take into account custom fields
+				$or: [
+					{actors: keyword},
+					{stars: keyword},
+					{starring: keyword},
+					{cast: keyword},
+				],
+			}, (err, entries) => {
+				if (err) {
+					subscriber.error(err);
+				} else {
+					// console.log(`searchEntry(${input}) results:`);
+					// console.log(entries);
+					subscriber.next(entries);
+				}
+			});
+		});
+	}
+
+	searchGenres(parts): Observable<Entry[]> {
+		const keyword = new RegExp(parts[0], 'i');
+		return new Observable(subscriber => {
+			this.datastore.find({
+				// This doesn't take into account custom fields
+				$or: [
+					{genre: keyword},
+					{genres: keyword},
+				],
+			}, (err, entries) => {
+				if (err) {
+					subscriber.error(err);
+				} else {
+					// console.log(`searchEntry(${input}) results:`);
+					// console.log(entries);
+					subscriber.next(entries);
+				}
+			});
+		});
+	}
+
+	searchAll(parts): Observable<Entry[]> {
+		const keyword = new RegExp(parts[0], 'i');
+		return new Observable(subscriber => {
+			this.datastore.find({
+				// This doesn't take into account custom fields
+				$or: [
+					{overview: keyword},
+					{release_date: keyword},
+					{year: keyword},
+					{released: keyword},
+					{original_title: keyword},
+					{media_type: keyword},
+					{original_language: keyword},
+					{title: keyword},
+					{origin_country: keyword},
+					{name: keyword},
+					{original_name: keyword},
+					{known_for: keyword},
+					{belongs_to_collection: keyword},
+					{genre: keyword},
+					{genres: keyword},
+					{actors: keyword},
+					{stars: keyword},
+					{starring: keyword},
+					{cast: keyword},
+					{director: keyword},
+					{production_companies: keyword},
+					{production_countries: keyword},
+					{spoken_languages: keyword},
+					{tagline: keyword}
+				],
+			}, (err, entries) => {
+				if (err) {
+					subscriber.error(err);
+				} else {
+					// console.log(`searchEntry(${input}) results:`);
+					// console.log(entries);
+					subscriber.next(entries);
+				}
+			});
+		});
 	}
 
 	getFileFromPath(file: string) {
