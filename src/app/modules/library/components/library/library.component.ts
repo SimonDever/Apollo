@@ -1,10 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable, Subscription, config } from 'rxjs';
-
+import { Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 import * as fromLibrary from '../../store';
 import * as LibraryActions from '../../store/library.actions';
-import { map } from 'rxjs/operators';
 
 @Component({
 	selector: 'app-library',
@@ -14,7 +13,6 @@ import { map } from 'rxjs/operators';
 export class LibraryComponent implements OnInit, OnDestroy {
 
 	config: any;
-	config$: Observable<any>;
 	subs: Subscription;
 	
 	constructor(
@@ -22,19 +20,13 @@ export class LibraryComponent implements OnInit, OnDestroy {
 	) {}
 
 	ngOnInit() {
-		
 		this.store.dispatch(new LibraryActions.GetConfig());
-		
-		this.config$ = this.store.select(fromLibrary.getConfig);
-
-		this.subs = this.config$.pipe(
-			map(config => this.config = config))
-			.subscribe();
+		this.subs = this.store.select(fromLibrary.getConfig).pipe(
+			map(config => this.config = config)
+		).subscribe();
 	}
 
 	ngOnDestroy() {
-		if (this.subs) {
-			this.subs.unsubscribe();
-		}
+		this.subs ? this.subs.unsubscribe() : {};
 	}
 }

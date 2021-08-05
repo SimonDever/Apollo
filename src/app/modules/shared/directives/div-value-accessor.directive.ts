@@ -1,11 +1,5 @@
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
-import { Directive, forwardRef, Renderer, ElementRef } from '@angular/core';
-
-const DIV_VALUE_ACCESSOR: any = {
-	provide: NG_VALUE_ACCESSOR,
-	useExisting: forwardRef(() => DivValueAccessorDirective),
-	multi: true
-};
+import { Directive, forwardRef, ElementRef, Renderer2 } from '@angular/core';
 
 @Directive({
 	selector: 'div[formControlName]',
@@ -13,24 +7,27 @@ const DIV_VALUE_ACCESSOR: any = {
 			'(input)': 'onChange($event.target)',
 			'(blur)' : 'onTouched()'
 	},
-	providers: [DIV_VALUE_ACCESSOR]
+	providers: [{
+		provide: NG_VALUE_ACCESSOR,
+		useExisting: forwardRef(() => DivValueAccessorDirective),
+		multi: true
+	}]
 })
 export class DivValueAccessorDirective implements ControlValueAccessor {
 	onChange = (_) => {};
 	onTouched = () => {};
 
 	constructor(
-			private _renderer: Renderer,
+			private _renderer: Renderer2,
 			private _elementRef: ElementRef
 	) {}
 
 	public writeValue(value: string): void {
-		let normalizedValue = String(value);
+		const normalizedValue = String(value);
 		/* if (normalizedValue) {
 			normalizedValue = normalizedValue.replace(/^s|s$/g, ' ');
 		} */
-
-		this._renderer.setElementProperty(
+		this._renderer.setProperty(
 			this._elementRef.nativeElement, 'innerHTML', normalizedValue);
 	}
 

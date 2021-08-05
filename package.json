@@ -78,7 +78,7 @@
 		"ng2-dragula": "^2.1.1",
 		"ngrx-store-freeze": "^0.2.4",
 		"ngx-electron": "2.2.0",
-		"ngx-virtual-scroller": "^3.0.2",
+		"ngx-virtual-scroller": "^4.0.3",
 		"path": "^0.12.7",
 		"popper.js": "^1.15.0",
 		"rxjs": "^6.5.3",

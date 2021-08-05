@@ -11,7 +11,7 @@ import { Subscription ,  Observable ,  of, Subject } from 'rxjs';
 import { Entry } from '../../library/store/entry.model';
 
 @Injectable({
-  providedIn: 'root'
+	providedIn: 'root'
 })
 export class NavigationService {
 
@@ -103,26 +103,50 @@ export class NavigationService {
 	}
 
 	getBookmark(char: string): Entry {
-		const entry = this.bookmarks.get(char);
-		// console.log(`getBookmark(${char})`, entry);
+		console.debug(`getBookmark(${char})`);
+		let entry = this.bookmarks.get(char);
+		if (!entry) {
+			entry = this.getNextBookmark(char);
+		}
+		console.debug(`getBookmark(${char}) - entry:`, entry);
+		return entry;
+	}
+
+	getNextBookmark(char: string): Entry {
+		const alphabet = '#ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		let index = alphabet.indexOf(char);
+		let entry;
+		while (!entry && index < alphabet.length) {
+			const nextChar = alphabet.charAt(index);
+			entry = this.bookmarks.get(nextChar);
+			console.debug(`getNextBookmark(${char}) - trying ${nextChar}) - entry:`, entry);
+			index++;
+		}
+		if (!entry) {
+			console.warn(`No bookmark entry found for ${char}.`);
+		}
 		return entry;
 	}
 
 	setBookmarks(data: Entry[]) {
-		const charArray = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+		const charArray = '#ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 		let start = 0;
 		const end = data.length;
 		for (const char of charArray) {
 			for (let i = start; i < data.length; i++) {
-				if (data[i].title && data[i].title.startsWith(char)) {
+				const isBookmark =
+					(char === '#' && data[i].title && data[i].title && /(^\d)/.test(data[i].title)) ||
+					(data[i].title && data[i].title.startsWith(char));
+
+				if (isBookmark) {
 					this.bookmarks.set(char, data[i]);
-					// console.log(`setting bookmark, key: ${char}, value: ${data[i]}`);
+					console.debug(`setting bookmark, char: ${char}, item: ${data[i].title}`);
 					start = i;
 					i = data.length; // break inner for
 				}
 			}
 		}
 
-		// console.log(`setBookmarks(data)`, this.bookmarks);
+		console.debug(`setBookmarks(data)`, this.bookmarks);
 	}
 }

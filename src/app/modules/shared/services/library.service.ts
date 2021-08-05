@@ -9,7 +9,8 @@ import { ElectronService } from 'ngx-electron';
 import { NavigationService } from './navigation.service';
 import { take, map } from 'rxjs/operators';
 import { Entry } from '../../library/store/entry.model';
-import { Subject } from 'rxjs';
+import { Subject, BehaviorSubject, Observable } from 'rxjs';
+import { Sorting } from '../models/sorting.model';
 
 const uuid = require('uuid/v4');
 
@@ -20,15 +21,15 @@ export class LibraryService {
 	selectedEntryId: any;
 	userDataFolder: string;
 	fs: any;
-	entries;
-	entries$;
+	entries: Entry[];
+	entries$: Observable<Entry[]>;
+	sorting$: Observable<Sorting>;
 
 	// Regular expression for image type:
 	// This regular image extracts the "jpeg" from "image/jpeg"
 	imageTypeRegularExpression = /\/(.*?)$/;
 
-	sortingSubject = new Subject<{ field: string; direction: string }>();
-	sorting$ = this.sortingSubject.asObservable();
+	public sortingSubject = new BehaviorSubject<Sorting>({field: 'title', direction: 'asc'});
 
 	constructor(
 		private router: Router,
@@ -40,16 +41,13 @@ export class LibraryService {
 		private store: Store<fromLibrary.State>,
 		private activatedRoute: ActivatedRoute
 	) {
+		this.sorting$ = this.sortingSubject.asObservable();
 		this.userDataFolder = this.electronService.remote.app.getPath('userData');
 		this.fs = this.electronService.remote.require('fs');
-		this.entries$ = this.store
-			.pipe(
-				select(fromLibrary.getAllEntries),
-				map((entries: Array<Entry>) => {
-					this.entries = entries;
-				})
-			)
-			.subscribe();
+		this.entries$ = this.store.pipe(select(fromLibrary.getAllEntries));
+		this.entries$.pipe(map((entries: Entry[]) => {
+			this.entries = entries;
+		})).subscribe();
 	}
 
 	setSelectedEntryId(id: any) {
@@ -60,34 +58,20 @@ export class LibraryService {
 		return this.selectedEntryId;
 	}
 
-	convertDataUri(entry: any) {
-		const imageBuffer = this.decodeBase64Image(entry.poster_path);
-		const imageTypeDetected = imageBuffer.type.match(
-			this.imageTypeRegularExpression
-		);
-		const ext = imageTypeDetected[1];
-		const path = `${this.userDataFolder}\\posters\\${uuid()}.${ext}`;
-		entry.poster_path = path;
-		this.writeImage(imageBuffer.data, path);
-	}
-
 	touch(event: Event, entry: any) {
 		if (!entry.touched) {
-			console.log('saving touch');
 			entry.touched = true;
 			this.saveEntry(entry);
-			console.log('touch saved');
-		} else {
-			console.log('touch ignored');
+			console.debug('touch saved', entry);
 		}
 	}
 
-	triggerSort(sorting: {field: string, direction: string}) {
+	triggerSort(sorting: Sorting) {
 		this.sortingSubject.next(sorting);
 	}
 
 	sortBy(entries: Entry[], sorting: { field: string; direction: string }) {
-		console.log(`sorting by ${sorting.field}, ${sorting.direction}`);
+		console.debug(`sorting by ${sorting.field}, ${sorting.direction}`);
 		return entries.sort((a, b) => {
 			let first, second;
 
@@ -103,8 +87,6 @@ export class LibraryService {
 				} else if (b.release_date) {
 					second = (new Date(b.release_date)).getFullYear();
 				}
-
-				console.log(`sorting first: ${first}, second: ${second}`);
 
 				if (sorting.direction === 'asc') {
 					if (first < second) {
@@ -123,14 +105,6 @@ export class LibraryService {
 						return -1;
 					}
 				}
-
-				/* 
-				if (sorting.direction === 'asc' && first) {
-					return second ? first > second : -1;
-				} else if (second) {
-					return first ? second > first : 1;
-				}
-				*/
 			} else {
 				first = a[sorting.field];
 				second = b[sorting.field];
@@ -144,16 +118,14 @@ export class LibraryService {
 	}
 
 	savePoster(entry: any) {
-		console.log(
-			'libraryService :: savePoster :: entry.poster_path',
-			entry.poster_path
-		);
 		if (entry.poster_path) {
-			if (entry.poster_path.startsWith('data:image')) {
-				this.convertDataUri(entry);
-			} else if (entry.poster_path.startsWith(this.userDataFolder)) {
+			if (entry.poster_path.startsWith(this.userDataFolder)) {
 				// image already saved locally
+			} else if (entry.poster_path.startsWith('data:image')) {
+				console.debug(`savePoster - convertDataUri(${entry.poster_path})`);
+				this.convertDataUri(entry);
 			} else if (entry.poster_path.startsWith('/')) {
+				console.debug(`savePoster - convertUrlPath(${entry.poster_path})`);
 				this.convertUrlPath(entry);
 			}
 		} else {
@@ -174,6 +146,17 @@ export class LibraryService {
 		reader.readAsDataURL(data);
 	}
 
+	convertDataUri(entry: any) {
+		const imageBuffer = this.decodeBase64Image(entry.poster_path);
+		const imageTypeDetected = imageBuffer.type.match(
+			this.imageTypeRegularExpression
+		);
+		const ext = imageTypeDetected[1];
+		const path = `${this.userDataFolder}\\posters\\${uuid()}.${ext}`;
+		entry.poster_path = path;
+		this.writeImage(imageBuffer.data, path);
+	}
+	
 	convertUrlPath(entry: any) {
 		console.log('libraryService :: convertUrlPath :: entry');
 		if (entry.poster_path) {
@@ -181,16 +164,13 @@ export class LibraryService {
 			const filename = entry.poster_path.substring(1);
 			const path = `${this.userDataFolder}\\posters\\${filename}`;
 			entry.poster_path = path;
-			fetch(url).then(
-				((response) =>
-					response
-						.blob()
-						.then((data) => this.createImageFile(data, path))).bind(this)
-			);
+			fetch(url).then((
+				(response) => response.blob().then(
+					(data) => this.createImageFile(data, path)
+				)
+			).bind(this));
 		} else {
-			console.log(
-				'no poster_path field on entry found during request to convert'
-			);
+			console.warn('no poster_path field on entry found during request to convert');
 		}
 	}
 
@@ -207,23 +187,19 @@ export class LibraryService {
 			.split('-')[0]
 			.trim();
 
-		const entries = this.entries.filter((entry) => {
+		const entries: Entry[] = this.entries.filter((entry) => {
 			const exists = file.path === entry.file;
-			console.log(
-				`libraryService :: createEntry :: file.path (${file.path}) === entry.file (${entry.file}): ${exists}`
-			);
+			console.log(`createEntry :: file.path (${file.path}) === entry.file (${entry.file}): ${exists}`);
 			return exists;
 		});
 
-		console.log(
-			'libraryService :: createEntry :: entries.length',
-			entries.length
-		);
+		console.log('libraryService :: createEntry :: entries.length', entries.length);
+		const duplicates = entries.map((e: Entry) => `
+			Title: ${e.title}
+			Path: ${e.path}
+		`).join('\n\n');
 
-		const message = `Confirm adding possible duplicate with file
-			path: ${file.path}. Existing titles: ${entries.map((e) => e.title).join(', ')};
-			files: ${entries.map((e) => e.file).join(', ')}.`;
-		if (entries.length > 0 && !confirm(message)) {
+		if (entries.length > 0 && !confirm('Possible duplicate detected ' + duplicates)) {
 			return;
 		}
 		/* if (confirm(`Still want to add ${file.path} when you
@@ -237,7 +213,7 @@ export class LibraryService {
 		this.store.dispatch(new LibraryActions.ImportEntry({ entry: newEntry }));
 
 		/*	}
-		 } else {
+		} else {
 			this.store.dispatch(new LibraryActions.ImportEntry({ entry: {
 				id: uuid(),
 				title: tempTitle,

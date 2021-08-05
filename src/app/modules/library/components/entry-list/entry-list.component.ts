@@ -1,12 +1,12 @@
-import { AfterViewInit, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, TemplateRef, ViewChild, ElementRef } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterStateSnapshot } from '@angular/router';
 import { ModalDismissReasons, NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { select, Store } from '@ngrx/store';
 import { ElectronService } from 'ngx-electron';
 import { VirtualScrollerComponent } from 'ngx-virtual-scroller';
-import { Observable, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, Subscription, forkJoin, combineLatest } from 'rxjs';
+import { map, mergeMap, concatMap, withLatestFrom, startWith, tap } from 'rxjs/operators';
 import { fadeInOut } from '../../../shared/animations/animations';
 import { LibraryService } from '../../../shared/services/library.service';
 import { NavigationService } from '../../../shared/services/navigation.service';
@@ -32,7 +32,7 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 	entriesSub: Subscription;
 	selected = [];
 	config$;
-	config
+	config;
 	fragment: string;
 	selectedEntry: Entry;
 
@@ -42,6 +42,7 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 	constructor(private store: Store<fromLibrary.LibraryState>,
 		private navigationService: NavigationService,
 		private zone: NgZone,
+		private elementRef: ElementRef,
 		private cdRef: ChangeDetectorRef,
 		private modalService: NgbModal,
 		private libraryService: LibraryService,
@@ -55,23 +56,30 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 
 	ngOnInit() {
 
-		this.entries$ = this.store.pipe(select(fromLibrary.getAllEntries),
-			map((entries: Array<Entry>) => {
-				this.entries = entries.sort((a, b) => {
-					if (a.title == null) { return -1; }
-					if (a.title === b.title) {
-						return a.id < b.id ? -1 : 1
-					}
-					return a.title < b.title ? -1 : 1;
-				});
-
-				this.navigationService.setBookmarks(this.entries);
-				return entries;
-			})
-		);
-
 		this.subs = this.store.pipe(select(fromLibrary.getConfig),
 			map(config => this.config = config)).subscribe();
+
+			this.entries$ = this.store.pipe(select(fromLibrary.getAllEntries)).pipe(
+				withLatestFrom(this.libraryService.sorting$),
+				map(([entries, sorting]) => {
+					this.entries = this.libraryService.sortBy(entries, sorting);
+					this.navigationService.setBookmarks(this.entries);
+					console.log('entry list get entries and sort - forkJoin - entries', entries, sorting);
+					return entries;
+				})
+			);
+/* 
+		this.subs.add(
+			this.libraryService.sortingSubject.asObservable().pipe(
+				tap((v) => console.log('sorting sub, bv:',v)),
+				withLatestFrom(this.store.pipe(select(fromLibrary.getAllEntries))),
+				map(([sorting, entries]) => {
+				this.entries = this.libraryService.sortBy(entries, sorting);
+				this.navigationService.setBookmarks(this.entries);
+				console.log('entry list get entries and sort - forkJoin - entries', entries, sorting);
+			})).subscribe()
+		); */
+
 
 		this.subs.add(this.store.pipe(select(fromLibrary.getNeedEntries),
 			map(needEntries => {
@@ -88,7 +96,7 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 		this.subs.add(this.store.pipe(select(fromLibrary.getSelectedEntryId),
 			map((id: string) => this.selectedEntryId = id)).subscribe());
 
-		this.cdRef.detectChanges();
+		this.cdRef.detectChanges(); // TODO: confirm still needed
 	}
 
 	ngAfterViewInit() {
@@ -102,19 +110,17 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 		} else {
 			// TODO: scroll to selected entry in table format
 		}
-
-		this.subs.add(this.libraryService.sorting$.pipe(
-			map((sorting: {field: string, direction: string}) => {
-			//if (sorting.field) {
-				this.entries = this.libraryService.sortBy(this.entries, sorting);
-			//}
-		})).subscribe());
 	}
 
 	scrollToSelectedEntry(): void {
+		console.log('scrollToSelectedEntry', this.selectedEntryId, this.selectedEntry);
 		if (this.selectedEntryId != null) {
 			// console.log(`scrollTo - about to scroll to selectedEntryId ${this.selectedEntryId}`);
 			// TODO: Don't call if entry is already fully visible to prevent animation trigger
+			
+			//const box = document.querySelector(`#entry-${this.selectedEntryId}`);
+			//console.log('box', box);
+			//box.scrollIntoView({ behavior: 'smooth' });
 			this.virtualScroller.scrollInto(this.selectedEntry);
 		}
 	}
@@ -124,8 +130,10 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 		if (reason === 'delete') {
 			console.log('searchResults :: closeModal :: trashing');
 			this.trash();
+			this.modalRef.close('delete');
+		} else {
+			this.modalRef.close('cancel');
 		}
-		this.modalRef.dismiss('close');
 	}
 
 	ngOnDestroy() {
@@ -141,11 +149,9 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 		event.stopPropagation();
 		this.modalRef = this.modalService.open(content);
 		this.modalRef.result.then((result) => {
-			this.closeResult = `Closed with: ${result}`;
-			console.log('showDeleteConfirmation :: this.closeResult :: ', this.closeResult);
-		}, (reason) => {
-			this.closeResult = `Dismissed with: ${this.getDismissReason(reason)}`;
-			console.log('showDeleteConfirmation :: this.closeResult :: ', this.closeResult);
+			console.log('showDeleteConfirmation :: result :: ', result);
+		}, (result) => {
+			console.log('showDeleteConfirmation (fail) :: result :: ', result);
 		});
 	}
 

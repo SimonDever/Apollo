@@ -1,23 +1,24 @@
 <div class="list-view" @fadeInOut>
 	<div class="entry-list" *ngIf="config && !config.tableFormat">
-		<virtual-scroller class="virtual-scroller" #scroll [items]="entries$ | async" [bufferAmount]="20"> <!-- entries$ | async -->
-			<div *ngFor="let entry of scroll.viewPortItems" (click)="toggleActions($event, entry)" class="entry-box"
+		<virtual-scroller class="virtual-scroller" #scroll [items]="entries$ | async" [bufferAmount]="100"> <!-- entries$ | async -->
+			<div *ngFor="let entry of scroll.viewPortItems" class="entry-box" [id]="'entry-'+entry.id"
+				(click)="toggleActions($event, entry)"
 				[class.hide-touched]="entry.touched && config.showOnlyUntouched"
 				[class.untouched]="!entry.touched && config.untouchedHighlight">
 				<div class="poster-preview">
-					<img *ngIf="posterUrl(entry.poster_path) else missingPoster" class="entry-poster" id="poster-{{entry.id}}"
-						[src]="posterUrl(entry.poster_path)" />
+					<img *ngIf="posterUrl(entry.poster_path) else missingPoster"
+						class="entry-poster" id="poster-{{entry.id}}"	[src]="posterUrl(entry.poster_path)" />
 					<ng-template #missingPoster>
 						<div class="entry-poster missing-poster-icon" [color]="'#ccc'" octicon="question"></div>
 					</ng-template>
 				</div>
 				<div class="entry-actions">
 					<div class="entry-title">
-						{{entry.title}}
-						<span *ngIf="config.addYear && entry.year">({{entry.year}})</span>
-						<span *ngIf="config.addYear && !entry.year && entry.release_date">({{entry.release_date | date: 'yyyy'}})</span>
+						{{ entry.title }}
+						<span *ngIf="config.addYear && entry.year">({{ entry.year }})</span>
+						<span *ngIf="config.addYear && !entry.year && entry.release_date">({{ entry.release_date | date: 'yyyy' }})</span>
 					</div>
-					<div class="entry-blurb">{{entry.overview}}</div>
+					<div class="entry-blurb">{{ entry.overview }}</div>
 					<div class="icon-button-box-horizontal">
 						<button octicon="trashcan" class="icon-button trash-button"
 							(click)="showDeleteConfirmation($event, deleteModal)"></button>
@@ -44,14 +45,17 @@
 					[class.untouched]="!entry.touched && config.untouchedHighlight">
 					<td class="title-cell">{{ entry.title }}</td>
 					<td>{{ entry.year || entry.release_date | date: 'yyyy' }}</td>
-					<td>{{ entry.overview}}</td>
+					<td>{{ entry.overview }}</td>
 					<td>
 						<div class="icon-button-box-horizontal">
-							<button octicon="check" class="icon-button confirm-button" *ngIf="!entry.touched"	(click)="touch($event, entry)"></button>
+							<button octicon="check" class="icon-button confirm-button" *ngIf="!entry.touched"
+								(click)="touch($event, entry)"></button>
 							<button octicon="trashcan" class="icon-button trash-button"
 								(click)="showDeleteConfirmation($event, deleteModal, entry)"></button>
-							<button octicon="pencil" class="icon-button edit-button" (click)="edit($event, entry)"></button>
-							<button octicon="play" class="icon-button play-button" (click)="play($event, entry.file)"></button>
+							<button octicon="pencil" class="icon-button edit-button"
+								(click)="edit($event, entry)"></button>
+							<button octicon="play" class="icon-button play-button"
+								(click)="play($event, entry.file)"></button>
 						</div>
 					</td>
 				</tr>
@@ -72,7 +76,7 @@
 		<p class="text-danger"><strong>This operation cannot be undone.</strong></p>
 	</div>
 	<div class="modal-footer">
-		<button type="button" class="btn btn-outline-light" (click)="closeDeleteModal('cancel')">Cancel</button>
-		<button type="button" class="btn btn-danger" (click)="closeDeleteModal('delete')">Delete</button>
+		<button ngbAutofocus type="button" class="btn btn-outline-light" (keyup.enter)="closeDeleteModal('cancel')" (click)="closeDeleteModal('cancel')">Cancel</button>
+		<button type="button" class="btn btn-danger" (keyup.enter)="closeDeleteModal('delete')" (click)="closeDeleteModal('delete')">Delete</button>
 	</div>
 </ng-template>

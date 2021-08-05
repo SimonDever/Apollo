@@ -5,6 +5,8 @@ import { Entry } from '../../library/store/entry.model';
 import * as Datastore from 'nedb';
 import { ElectronService } from 'ngx-electron';
 
+const uuid = require('uuid/v4');
+
 @Injectable({
   providedIn: 'root'
 })
@@ -71,16 +73,15 @@ export class StorageService {
 				}
 			});
 			*/
-			this.config.update(
-				{ id: 'config' },
+			this.config.update({ id: 'config' },
 				{ $set: { ...configItems } },
-				{ upsert: true },
-				(err, numberOfUpdated) => {
+				{ upsert: true, returnUpdatedDocs: true },
+				(err, numberOfUpdated, config) => {
 					if (err) {
 						subscriber.error(err);
 					} else {
-						//console.log('number of items updated: ', numberOfUpdated);
-						subscriber.next(numberOfUpdated);
+						console.debug('configuration has been updated in storage', config);
+						subscriber.next(config);
 					}
 				}
 			);
@@ -88,7 +89,7 @@ export class StorageService {
 	}
 
 	deleteAllEntries(): Observable<number> {
-		console.log(`StorageService - deleteAllEntries - entry`);
+		console.debug(`deleteAllEntries() - entry`);
 		return new Observable(subscriber => {
 			this.datastore.remove({}, { multi: true }, function (err, countRemoved) {
 				if (err) {
@@ -96,9 +97,9 @@ export class StorageService {
 				} else {
 					subscriber.next(countRemoved);
 				}
-				console.log('StorageService - deleteAllEntries - complete');
+				console.debug('deleteAllEntries() - complete');
 			});
-		})
+		});
 	}
 
 
@@ -108,7 +109,7 @@ export class StorageService {
 				if (err) {
 					subscriber.error(err);
 				}
-				//console.log('getEntries()', entries);
+				console.debug('getEntries()', entries);
 				subscriber.next(entries);
 			});
 		});
@@ -149,7 +150,7 @@ export class StorageService {
 
 				genreList = Array.from(new Set(genreList)).sort();
 
-				console.log('genreList:', genreList);
+				console.debug('genreList:', genreList);
 
 				subscriber.next(genreList);
 			});
@@ -162,14 +163,31 @@ export class StorageService {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					//console.log('getEntry(id)', entry);
+					console.debug('getEntry(id)', entry);
 					subscriber.next(entry);
 				}
 			});
 		});
 	}
 
+	removeAllFields(fieldsToRemove: any): Observable<Entry[]> {
+		return new Observable(subscriber => {
+			console.debug(`removeAllFields - attempting to remove:`, fieldsToRemove);
+			this.datastore.update({}, {
+				$unset: { ...fieldsToRemove }
+			}, { multi: true, returnUpdatedDocs: true }, ((err, numberOfUpdated, entries) => {
+				if (err) {
+					subscriber.error(err);
+				} else {
+					console.debug('items updated: ', numberOfUpdated, entries);
+					subscriber.next(entries);
+				}
+			}).bind(this));
+		});
+	}
+
 	updateEntry(id: string, entry: Entry): Observable<Entry> {
+		console.debug(`updateEntry() entry`);
 
 		const valuesToRemove = {};
 		Object.entries(entry).forEach(([k, v]) => {
@@ -180,14 +198,15 @@ export class StorageService {
 		});
 
 		return new Observable(subscriber => {
+			console.debug(`updateEntry attempting update datastore`, entry);
 			this.datastore.update({ id: id }, {
 				$set: { ...entry },
 				$unset: { ...valuesToRemove }
-			}, { upsert: true }, ((err, numberOfUpdated) => {
+			}, { upsert: false }, ((err, numberOfUpdated) => {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					//console.log('number of items updated: ', numberOfUpdated);
+					console.debug('number of items updated: ', numberOfUpdated);
 					subscriber.next(entry);
 				}
 			}).bind(this));
@@ -195,7 +214,7 @@ export class StorageService {
 	}
 
 	getAllEntries(): Observable<Entry[]> {
-		//console.log(`StorageService - load - this.datastore.filename: ${this.datastore.filename}`);
+		console.debug(`StorageService - load - this.datastore.filename: ${this.datastore.filename}`);
 		return new Observable(subscriber => {
 			this.datastore.find({}, (err, entries) => {
 				if (err) {
@@ -247,7 +266,6 @@ export class StorageService {
 		const keyword = new RegExp(value, 'i');
 		return new Observable(subscriber => {
 			this.datastore.find({
-				// This doesn't take into account custom fields
 				$or: [
 					{actors: keyword},
 					{stars: keyword},
@@ -373,7 +391,7 @@ export class StorageService {
 							console.error('error', err);
 						}
 						console.debug('number removed:', numRemoved); */
-						//console.debug('cleanArrays - updating entries', entries);
+						// console.debug('cleanArrays - updating entries', entries);
 
 						/* this.datastore.insert(entries, (err, entriesOut) => {
 							if (err) {
@@ -394,7 +412,7 @@ export class StorageService {
 										console.error('cleanArray - error inserting after cleaning');
 										subscriber.error(err);
 									}
-									console.debug('cleanArray - new entries after insert ('+numAffected+'):', affectedDocuments);
+									console.debug('cleanArray - new entries after insert (' + numAffected + '):', affectedDocuments);
 									console.debug('cleanArray - ', ++i);
 									subscriber.next(affectedDocuments);
 								});
@@ -459,6 +477,22 @@ export class StorageService {
 		});
 	}
 
+	touchAll(): Observable<number> {
+		console.debug(`touchAll - attempting to touch all movies`);
+		return new Observable(subscriber => {
+			this.datastore.update({ }, {
+				$set: { touched: true }
+			}, { multi: true }, ((err, numUpdated) => {
+				if (err) {
+					subscriber.error(err);
+				} else {
+					console.log('number of items updated: ', numUpdated);
+					subscriber.next(numUpdated);
+				}
+			}).bind(this));
+		});
+	}
+
 	exists(file: string): Observable<Entry> {
 		return new Observable(subscriber => {
 			this.datastore.find({ file: new RegExp(file, 'i') }, (err, exists) => {
@@ -473,29 +507,28 @@ export class StorageService {
 	}
 
 	addEntry(newEntry: Entry): Observable<Entry> {
-		console.debug('storageService - addEntry - entry');
+		
+		console.debug('storageService - addEntry - entry', newEntry);
 		return new Observable(subscriber => {
 			this.datastore.insert(newEntry, (err, entry) => {
 				if (err) {
 					subscriber.error(err);
 					console.debug('storageService - addEntry - err', err);
 				}
-				console.debug('storageService - addEntry - newEntry', entry);
+				console.debug('storageService - addEntry - new entry added', entry);
 				subscriber.next(entry);
 			});
 		});
 	}
 
 	removeEntry(id: string): Observable<number> {
-		//console.debug('attempting to removeEntry(id)');
-		//console.debug(id);
+		console.debug(`removeEntry(${id}) - attempting to remove record`);
 		return new Observable(subscriber => {
 			this.datastore.remove({ id: id }, {}, (err, numRemoved) => {
 				if (err) {
 					subscriber.error(err);
 				}
-				//console.debug('removeEntry(id)');
-				//console.debug(numRemoved);
+				console.debug(`removeEntry(${id}) - records removed: ${numRemoved}`);
 				subscriber.next(numRemoved);
 			});
 		});

@@ -22,6 +22,8 @@ import { Subscription, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { initialState } from '../../../library/store/search.reducer';
 import * as packageJson from '../../../../../../package.json';
+import { Sorting } from '../../models/sorting.model';
+import { METADATA_SEARCH_OPTIONS } from '../../models/metadata-fields';
 
 @Component({
 	selector: 'app-menu',
@@ -29,7 +31,7 @@ import * as packageJson from '../../../../../../package.json';
 	styleUrls: ['./menu.component.css'],
 })
 export class MenuComponent implements OnInit, DoCheck {
-	alphabet = '0ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+	alphabet = '#ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 	appTitle: string;
 	appVersion: string;
 	navbarCollapsed: boolean;
@@ -45,7 +47,11 @@ export class MenuComponent implements OnInit, DoCheck {
 	subs: Subscription;
 	differ: any;
 	borderStyles: string[];
-	sorting: {field: string, direction: string};
+	sorting: Sorting;
+
+	metaSearchData: any;
+	metaSearchOptions: string[];
+
 
 	constructor(
 		private formBuilder: FormBuilder,
@@ -67,8 +73,9 @@ export class MenuComponent implements OnInit, DoCheck {
 		this.routerState = this.router.routerState.snapshot;
 		this.navbarCollapsed = true;
 		this.title = '';
-		this.sorting = {field: 'title', direction: 'asc'};
 		this.genres = [];
+		this.metaSearchData = {};
+		this.metaSearchOptions = METADATA_SEARCH_OPTIONS;
 		this.configForm = new FormGroup({});
 	}
 
@@ -93,6 +100,9 @@ export class MenuComponent implements OnInit, DoCheck {
 					});
 					this.configForm = this.formBuilder.group(configFormGroup);
 					this.config = config;
+					//this.metaSearchData = config.metadataSearchFields || {};
+					//console.log('this.metaSearchData', this.metaSearchData);
+					//console.log('this.config.metadataSearchFields', this.config.metadataSearchFields);
 					this.cdRef.detectChanges();
 				})
 			)
@@ -111,19 +121,31 @@ export class MenuComponent implements OnInit, DoCheck {
 	}
 
 	sortBy(field: string) {
-		if (this.sorting.field === field) {
-			if (this.sorting.direction === 'asc') {
-				this.sorting.direction = 'desc';
+		const current = this.libraryService.sortingSubject.value;
+		if (current && current.field === field) {
+			if (current.direction === 'asc') {
+				this.sorting = {field, direction: 'desc'};
 			} else {
-				this.sorting.direction = 'asc';
+				this.sorting = {field, direction: 'asc'};
 			}
 		} else {
-			this.sorting.direction = 'asc';
+			this.sorting = {field, direction: 'asc'};
 		}
-
-		this.sorting.field = field;
+		
 		this.libraryService.triggerSort(this.sorting);
 	}
+/* 
+	checkMetadataSearchOption(event: Event, option: string) {
+		//event.preventDefault();
+		//event.stopImmediatePropagation();
+		if (this.metaSearchData[option] != null) {
+			delete this.metaSearchData[option];
+		} else {
+			this.metaSearchData[option] = true;
+		}
+
+		console.log('update form with metadata search fields to get', this.metaSearchData, this.configForm.value);
+	} */
 
 	goto(char: string) {
 		this.navigationService.gotoBookmark(char);

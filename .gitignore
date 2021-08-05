@@ -5,7 +5,7 @@ api-key.txt
 library-database.json
 code_signing_cert.pfx
 publisher.json
-movieapp.txt
+movieapp.md
 /src/environments/environment.ts
 /src/environments/environment.prod.ts
 /posters

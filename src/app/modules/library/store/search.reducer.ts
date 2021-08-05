@@ -45,6 +45,14 @@ export const initialState: State = {
 		showOnlyUntouched: false,
 		tableFormat: false,
 		editMenuPositionRight: true,
+		metadataSearchFields: [
+			'genres',
+			'overview',
+			'poster_path',
+			'release_date',
+			'runtime',
+			'title' 
+		]
 	},
 	apiKey: ''
 };
@@ -136,11 +144,11 @@ export function reducer(state: State = initialState, action: LibraryActions.All)
 			});
 		}
 
-		case LibraryActions.ADD_ENTRY: {
+		/* case LibraryActions.ADD_ENTRY: {
 			return Object.assign({}, state, {
 				selectedEntryId: action.payload.entry.id
 			});
-		}
+		} */
 
 		case LibraryActions.REFRESH_CONFIG: {
 			return Object.assign({}, state, {

@@ -1,0 +1,53 @@
+export const METADATA_SEARCH_OPTIONS: string[] = [
+	'belongs_to_collection',
+	'budget',
+	'genres',
+	'homepage',
+	'imdb_id',
+	'original_language',
+	'original_title',
+	'overview',
+	'popularity',
+	'poster_path',
+	'production_companies',
+	'production_countries',
+	'release_date',
+	'revenue',
+	'runtime',
+	'spoken_languages',
+	'status',
+	'tagline',
+	'title',
+	'vote_average',
+	'vote_count'
+];
+export const ESSENTIAL_FIELDS = [
+	'file',
+	'id',
+	'touched',
+	'_id',
+	'title',
+	'poster_path',
+	'release_date',
+	'genres',
+	'genre'
+];
+export const REMOVABLE_FIELDS = [
+	'belongs_to_collection',
+	'budget',
+	'homepage',
+	'imdb_id',
+	'original_language',
+	'original_title',
+	'overview',
+	'popularity',
+	'production_companies',
+	'production_countries',
+	'revenue',
+	'runtime',
+	'spoken_languages',
+	'status',
+	'tagline',
+	'vote_average',
+	'vote_count'
+];

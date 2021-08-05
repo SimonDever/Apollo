@@ -97,7 +97,7 @@ pre {
 	right: 0;
 	position: fixed;
 	z-index: 1;
-	height: 100%;
+	/*height: 100%;*/
 	background: var(--background);
 }
 
@@ -149,6 +149,10 @@ pre {
 .entry-box {
 	box-sizing: border-box;
 	background-color: transparent;
+	position: relative;
+	height: var(--grid-item-height);
+	width: var(--grid-item-width);
+	user-select: none;
 }
 
 .table {
@@ -304,7 +308,6 @@ input[type="search"]:not(:valid) ~ .clear-icon {
 }
 
 .poster-preview {
-	background-color: var(--grid-item-shadow-color);
 	margin-bottom: 30px;
 	width: var(--grid-item-width);
 	height: var(--grid-item-height);
@@ -324,12 +327,6 @@ input[type="search"]:not(:valid) ~ .clear-icon {
 .metadata-container .poster-preview {
 	display: inline-block;
 	position: relative;
-}
-
-.entry-box {
-	position: relative;
-	height: var(--grid-item-height);
-	width: var(--grid-item-width);
 }
 
 .navbar-brand {

@@ -5,8 +5,8 @@ import { Router, RouterStateSnapshot } from '@angular/router';
 import { ModalDismissReasons, NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { select, Store } from '@ngrx/store';
 import { ElectronService } from 'ngx-electron';
-import { Observable, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, Subscription, Subject } from 'rxjs';
+import { map, debounceTime } from 'rxjs/operators';
 import { fadeInOut } from '../../../shared/animations/animations';
 import { LibraryService } from '../../../shared/services/library.service';
 import { NavigationService } from '../../../shared/services/navigation.service';
@@ -24,13 +24,12 @@ const uuid = require('uuid/v4');
 	styleUrls: ['./edit-entry.component.css'],
 	animations: [fadeInOut]
 })
-export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
+export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 
 	defaultFieldOrder = ['title', 'overview'];
 	entry$: Observable<Entry>;
 	metadataSearchResponse$: Observable<any>;
 	metadataSearchResult: any;
-	selectedEntrySub: Subscription;
 	entryForm: FormGroup;
 	searchForm: FormGroup;
 	poster_path: string;
@@ -51,6 +50,8 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 	fieldsRemoved: string[];
 	dragList: any[];
 	config;
+	saveTrigger;
+	isDirty;
 
 	constructor(private formBuilder: FormBuilder,
 		private zone: NgZone,
@@ -74,6 +75,7 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 		this.inputList = [];
 		this.tempList = [];
 		this.fieldsRemoved = [];
+		this.saveTrigger = new Subject();
 		this.searchForm = this.formBuilder.group({ searchTerms: '' });
 		this.entryForm = this.formBuilder.group({});
 		this.entry$ = this.store.select(fromLibrary.getSelectedEntry);
@@ -92,27 +94,29 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 					entry.poster_path = '';
 				}
 				if (!entry.file) {
-					entry.file = null;
+					entry.file = '';
 				}
 				this.entry = { ...entry };
 				this.poster_path = entry.poster_path || '';
-				this.file = entry.file || null;
+				this.file = entry.file || '';
 
 				this.inputList = [];
 				Object.entries(this.entry).forEach(([key, value]) => {
-					if (this.isKeyEnumerable(key)) {
-						const field: InputField = {
-							value: value || '',
-							formControlName: key,
-							label: key
-						};
-						//this.tempList.push(field);
-						this.inputList.push(field);
+					if (value !== null) {
+						if (this.isKeyEnumerable(key)) {
+							const field: InputField = {
+								value: value || '',
+								formControlName: key,
+								label: key
+							};
+							this.inputList.push(field);
+						}
+					} else {
+						console.warn('found nulls in entry setup');
+						delete this.entry[key];
 					}
 				});
 
-				//this.presort();
-				//this.resort();
 				this.refreshForm();
 				this.cdRef.detectChanges();
 			}
@@ -130,23 +134,74 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 		this.subs.add(this.metadataSearchResponse$.subscribe(response => this.metadataSearchResult = response));
 	}
 
-	/* resort() {
-		if (this.entry.sort_order) {
-			this.tempList.forEach((element, index) => this.inputList[this.entry.sort_order[index]] = element);
-			this.tempList = [...this.inputList];
-		} else {
-			this.inputList = [...this.tempList];
+	/* 
+	@HostListener('window:beforeunload', ['$event'])
+	unloadNotification($event: any) {
+		console.log(`window:beforeunload - isDirty: ${this.isDirty}`);
+		if (this.isDirty) {
+			console.log(`window:beforeunload - triggerSave event - SHOULD NOT HAPPEN`, event);
+			//this.triggerSave(event);
 		}
-	} */
+		$event.returnValue = true;
+		console.log(`window:beforeunload returning`);
+	}
+	*/
 
-	/* presort() {
-		this.tempList = this.tempList.sort((a, b) => {
-			if (a.formControlName === 'title') { return -1; }
-			if (b.formControlName === 'title') { return 1; }
-			if (a.formControlName === 'file') { return -1; }
-			return 1;
+	ngOnDestroy() {
+		console.log(`ngOnDestroy saving dirty entry before component destroy:`, this.isDirty);
+		this.saveFormIfDirty(null);
+		this.cdRef.detach();
+		this.entry = null;
+		if (this.subs) {
+			this.subs.unsubscribe();
+		}
+	}
+
+	setDirty(e: Event) {
+		console.log(`setDirty`, e);
+		this.isDirty = true;
+	}
+
+	removeInputField(event: Event, inputField: InputField) {
+		this.saveFormIfDirty(event);
+		const key = inputField.formControlName;
+		console.warn(`removeInputField - click - fieldName: ${key}`);
+		Object.entries(this.entry).forEach(([k, v]) => {
+			if (k === key) {
+				console.log('removeInputField :: removing property:', key);
+				this.isDirty = true;
+				this.entry[key] = null;
+				this.entryForm.removeControl(key);
+			}
 		});
-	} */
+		this.inputList = this.inputList.filter(field => field.formControlName !== key);
+		this.refreshForm();
+		this.saveFormIfDirty(null);
+		console.log(`removeInputField - Removed ${key}:'' from `, this.entry);
+		return true;
+	}
+
+	cancelDelete() {
+		this.modalRef.dismiss('cancel click');
+	}
+
+	confirmDelete() {
+		this.modalRef.close('Ok click');
+	}
+	
+	saveFormIfDirty(event: Event) {
+		event ? event.preventDefault() : {};
+		console.debug('saveFormIfDirty - saveForm attempt', event);
+		if (this.isDirty) {
+			console.debug('saveFormIfDirty - saveForm allowed');
+			this.libraryService.saveEntry({
+				...this.entry,
+				...this.entryForm.value,
+			});
+			this.isDirty = false;
+		}
+		return true;
+	}
 
 	toTitleCase(str) {
 		return str.replace(
@@ -167,15 +222,33 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 	}
 
 	addNewField(fieldName) {
-		this.modalRef.close('newFieldAdded');
-		const newField: InputField = {
-			formControlName: fieldName.toLowerCase().replace(' ', '_'),
-			label: this.toTitleCase(fieldName.replace('_', ' ')),
-			value: ''
-		};
-		this.inputList.push(newField);
-		this.tempList.push(newField);
-		this.refreshForm();
+		console.log(`addNewField - fieldName: ${fieldName}`);
+		if (!fieldName || /(^\d)/.test(fieldName)) {
+			console.warn('prevented making field starting with number, bad for database');
+		} else {
+			this.modalRef.close('newFieldAdded');
+			this.isDirty = true;
+			const newFormControlName = fieldName.toLowerCase().replace(' ', '_');
+			const key = newFormControlName;
+			const value = '';
+			const newField: InputField = {
+				formControlName: newFormControlName,
+				label: this.toTitleCase(fieldName.replace('_', ' ')),
+				value: value
+			};
+			if (this.inputList.some(input => input.formControlName === newFormControlName)) {
+				console.warn(`addNewField - Field ${fieldName} has already been added to `, this.entry);
+			} else {
+				this.inputList.push(newField);
+				this.refreshForm();
+				this.libraryService.saveEntry({
+					...this.entry,
+					...{ [key]: value }
+				});
+				this.isDirty = false;
+				console.log(`addNewField - Added ${key}:'' to `, this.entry);
+			}
+		}
 	}
 	
 	refreshForm() {
@@ -199,7 +272,7 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 		}
 	}
 
-	ngDoCheck() {
+	/* ngDoCheck() {
 		if (this.differ.diff(this.entry)) {
 			this.entryForm.patchValue(this.entry);
 			if (this.poster_path == null && this.entry.poster_path != null) {
@@ -209,7 +282,7 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 				this.file = this.entry.file;
 			}
 		}
-	}
+	} */
 
 	search() {
 		this.modalRef.close('search');
@@ -232,7 +305,8 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 		this.modalRef.close();
 	}
 
-	showSearchDialog(searchDialog: TemplateRef<any>) {
+	showSearchDialog(event: Event, searchDialog: TemplateRef<any>) {
+		this.saveFormIfDirty(event);
 		let searchTerms = '';
 		const titleControl = this.entryForm.get('title');
 		if (titleControl) {
@@ -249,7 +323,8 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 		});
 	}
 
-	showNewFieldDialog(newFieldDialog: TemplateRef<any>) {
+	showNewFieldDialog(event: Event, newFieldDialog: TemplateRef<any>) {
+		this.saveFormIfDirty(event);
 		this.modalRef = this.modalService.open(newFieldDialog);
 		(this.modalRef as any)._beforeDismiss = function () { return false; };
 		this.modalRef.result.then((result) => {
@@ -259,7 +334,8 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 		});
 	}
 
-	showDeleteConfirmation(deleteDialog: TemplateRef<any>) {
+	showDeleteConfirmation(event: Event, deleteDialog: TemplateRef<any>) {
+		this.saveFormIfDirty(event);
 		this.modalRef = this.modalService.open(deleteDialog);
 		(this.modalRef as any)._beforeDismiss = function () { return false; };
 		this.modalRef.result.then((result) => {
@@ -284,21 +360,23 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 		}
 	}
 
-	ngOnDestroy() {
-		this.cdRef.detach();
-		this.entry = null;
-		if (this.subs) {
-			this.subs.unsubscribe();
-		}
-	}
-
 	posterChange(event) {
+		this.saveFormIfDirty(event);
 		const reader = new FileReader();
 		const poster = event.target.files[0];
-		reader.addEventListener('load', (function () {
+		reader.addEventListener('load', function () {
 			this.poster_path = reader.result;
-		}).bind(this), false);
+			console.log('posterChange - saving poster_path');
+			this.libraryService.saveEntry({
+				...this.entry,
+				...{ 
+					poster_path: this.poster_path
+				}
+			});
+			this.isDirty = false;
+		}.bind(this), false);
 		if (poster) {
+			this.isDirty = true;
 			reader.readAsDataURL(poster);
 		}
 	}
@@ -320,6 +398,7 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 	}
 
 	fileChange(event) {
+		this.saveFormIfDirty(event);
 		// this.files = event.target.files;
 		const path = event.target.files[0].path;
 		if (path == null) {
@@ -355,61 +434,23 @@ export class EditEntryComponent implements OnInit, OnDestroy, DoCheck {
 
 			this.entryForm.get('title').setValue(newTitle);
 		}
-	}
 
-	removeInputField(inputField: InputField) {
-		Object.entries(this.entry).forEach(([k, v]) => {
-			if (k === inputField.formControlName) {
-				delete this.entry[k];
-				this.entryForm.removeControl(k);
-				/* if (!this.entry.hasOwnProperty(k)) {
-					console.log('editEntryComponent :: removeInputField :: property:', k);
-					this.entry[k] = null;
-				} */
-				this.fieldsRemoved.push(k); // TODO: do we need this?
-			}
-		});
-		this.inputList = this.inputList.filter(field => field !== inputField);
-		this.tempList = this.tempList.filter(field => field !== inputField);
-		this.refreshForm();
-	}
-
-	save() {
-		console.log('editEntryComponent :: save :: fieldsRemoved:', this.fieldsRemoved);
-		this.fieldsRemoved.forEach(field => {
-			if (!this.entry.hasOwnProperty(field)) {
-				console.log('editEntryComponent :: save :: removing:', this.entry);
-				this.entry[field] = null;
-			}
-		});
-
-		console.log('editEntryComponent :: save :: with fields removed:', this.entry);
-		const changes = {
+		this.isDirty = true;
+		console.log('fileChange - file path saved', this.file);
+		this.libraryService.saveEntry({
 			...this.entry,
-			...this.entryForm.value,
-			...{
-				id: this.selectedEntryId,
+			...{ 
 				file: this.file,
-				poster_path: this.poster_path
+				title: this.entryForm.value.title
 			}
-		};
-		/* 
-		changes.sort_order = [];
-		for (let i = 0; i < this.tempList.length; i++) {
-			changes.sort_order.push(this.inputList.findIndex(e =>
-				e.formControlName === this.tempList[i].formControlName
-			));
-		} */
-
-		console.log('editEntryComponent :: save :: with new fields:', changes);
-		this.libraryService.saveEntry(changes);
-		this.navigationService.closeMetadata();
-		this.navigationService.closeEditEntry(this.selectedEntryId);
+		});
+		this.isDirty = false;
 	}
 
-	close() {
+	close(event: Event) {
+		this.saveFormIfDirty(event);
 		this.navigationService.closeEditEntry(this.selectedEntryId);
-		this.store.dispatch(new LibraryActions.DeselectEntry());
+		//this.store.dispatch(new LibraryActions.DeselectEntry());
 	}
 
 	trash() {

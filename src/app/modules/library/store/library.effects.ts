@@ -94,8 +94,8 @@ export class LibraryEffects {
 	@Effect()
 	importEntry$ = this.actions$.pipe(
 		ofType(LibraryActions.IMPORT_ENTRY),
-		map(action => (action as LibraryActions.ImportEntry).payload.entry),
-		mergeMap(entry => this.searchService.getFirstResult(entry)),
+		map(action => (action as LibraryActions.ImportEntry).payload),
+		mergeMap(payload => this.searchService.getFirstResult(payload.entry)),
 		map(entry => {
 			this.libraryService.convertUrlPath(entry);
 			return new LibraryActions.AddEntry({entry});

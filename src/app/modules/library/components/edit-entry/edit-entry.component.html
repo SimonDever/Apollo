@@ -2,17 +2,19 @@
 	<div *ngIf="config"
 			[class.icon-button-box-left]='!config.editMenuPositionRight'
 			[class.icon-button-box]='config.editMenuPositionRight'>
-		<button octicon="x" class="icon-button close-button" title="Close without saving" (click)="close()"></button>
-		<button octicon="trashcan" class="icon-button trash-button" title="Delete" (click)="showDeleteConfirmation(deleteModal)"></button>
-		<button octicon="check" class="icon-button save-button" title="Save" (click)="save()"></button>
-		<button octicon="plus" class="icon-button search-metadata-provider-button" title="Add field" (click)="showNewFieldDialog(newFieldDialog)"></button>
+		<button octicon="check" class="icon-button save-button" title="Done"
+			(mousedown)="close()"></button>
+		<button octicon="trashcan" class="icon-button trash-button" title="Delete"
+			(mousedown)="showDeleteConfirmation($event, deleteModal)"></button>
+		<button octicon="plus" class="icon-button search-metadata-provider-button" title="Add field"
+			(mousedown)="showNewFieldDialog($event, newFieldDialog)"></button>
 		<button octicon="search" class="icon-button search-metadata-provider-button" title="Search online for metadata"
-			(click)="showSearchDialog(searchDialog)"></button>
+			(mousedown)="showSearchDialog($event, searchDialog)"></button>
 	</div>
 
 	<div class="metadata-container">
 		<input (change)="posterChange($event)" type="file" #posterInput />
-		<div class="poster-preview" (click)="posterInput.click()">
+		<div class="poster-preview" (mousedown)="posterInput.click()">
 			<div *ngIf="!poster_path" class="poster-placeholder">Select Poster</div>
 			<ng-container *ngIf="poster_path">
 				<ng-container *ngIf="posterIsFile(poster_path)">
@@ -24,8 +26,6 @@
 			</ng-container>
 		</div>
 
-		
-
 		<form [formGroup]="entryForm">
 			<div class="right-fields">
 				<div class="field-grid three-column-reverse">
@@ -33,7 +33,8 @@
 						Title
 					</span>
 					<span class="metadata-field-value">
-						<div contenteditable="true" pasteText ngDefaultControl formControlName="title"></div>
+						<div contenteditable="true" pasteText ngDefaultControl formControlName="title"
+						[attr.data-key]="'title'" (blur)="saveFormIfDirty($event)" (input)="setDirty($event)"></div>
 					</span>
 				</div>
 
@@ -41,7 +42,7 @@
 					<span class="metadata-field-key">Video File</span>
 					<span class="metadata-field-value">{{file}}</span>
 					<input (change)="fileChange($event)" type="file" #fileInput />
-					<button class="btn btn-outline-light" (click)="fileInput.click()">
+					<button class="btn btn-outline-light" (mousedown)="fileInput.click()">
 						Browse
 					</button>
 				</div>
@@ -55,9 +56,10 @@
 									{{ input.label.split('_').join(' ') | titlecase }}
 								</span>
 								<span class="metadata-field-value">
-									<div contenteditable="true" pasteText ngDefaultControl formControlName="{{ input.formControlName }}"></div>
+									<div contenteditable="true" pasteText ngDefaultControl formControlName="{{ input.formControlName }}"
+									[attr.data-key]="input.label" (blur)="saveFormIfDirty($event)" (input)="setDirty($event)"></div>
 								</span>
-								<button class="btn btn-outline-light" (click)="removeInputField(input)">Remove</button>
+								<button class="btn btn-outline-light" (mousedown)="removeInputField($event, input)">Remove</button>
 							</div>
 						</ng-container>
 					</ng-container>
@@ -69,24 +71,24 @@
 	</div>
 
 	<ng-template #searchDialog let-modal>
-		<div class="modal-header">
-			<h4 class="modal-title" id="modal-basic-title">Search Terms</h4>
-			<button type="button" class="close" data-dismiss="modal" (click)="closeModal()" aria-label="Close">
-				<span aria-hidden="true">&times;</span>
-			</button>
-		</div>
-		<div class="modal-body">
-			<form [formGroup]="searchForm">
-				<div class="form-group">
-					<div class="input-group">
-						<input ngbAutofocus formControlName="searchTerms" class="form-control" placeholder="title, genre, actor, etc." />
+		<form [formGroup]="searchForm">
+			<div class="modal-header">
+				<h4 class="modal-title" id="modal-basic-title">Search Terms</h4>
+				<button type="button" class="close" data-dismiss="modal" (click)="closeModal()" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+					<div class="form-group">
+						<div class="input-group">
+							<input ngbAutofocus formControlName="searchTerms" class="form-control" placeholder="title, genre, actor, etc." />
+						</div>
 					</div>
-				</div>
-			</form>
-		</div>
-		<div class="modal-footer">
-			<button type="button" class="btn btn-outline-light" (click)="search()">Search Online</button>
-		</div>
+			</div>
+			<div class="modal-footer">
+				<button type="submit" class="btn btn-outline-light" (click)="search()">Search Online</button>
+			</div>
+		</form>
 	</ng-template>
 
 	<ng-template #newFieldDialog let-modal>
@@ -99,7 +101,7 @@
 		<div class="modal-body">
 			<div class="form-group">
 				<div class="input-group">
-					<input ngbAutofocus #newField class="form-control" />
+					<input ngbAutofocus #newField class="form-control" (keyup.enter)="addNewField(newField.value)" />
 				</div>
 			</div>
 		</div>
@@ -111,7 +113,8 @@
 	<ng-template #deleteModal let-modal>
 		<div class="modal-header">
 			<h4 class="modal-title" id="modal-basic-title">Confirm deletion</h4>
-			<button type="button" class="close" data-dismiss="modal" (click)="closeModal()" aria-label="Close">
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close"
+				(click)="cancelDelete()" (keyup.enter)="cancelDelete()">
 				<span aria-hidden="true">&times;</span>
 			</button>
 		</div>
@@ -120,8 +123,10 @@
 			<p><span class="text-danger">This operation can not be undone.</span></p>
 		</div>
 		<div class="modal-footer">
-			<button type="button" class="btn btn-outline-secondary" (click)="modal.dismiss('cancel click')">Cancel</button>
-			<button type="button" class="btn btn-danger" (click)="modal.close('Ok click')">Ok</button>
+			<button type="button" ngbAutofocus class="btn btn-outline-light"
+				(keyup.enter)="cancelDelete()" (click)="cancelDelete()">Cancel</button>
+			<button type="button" class="btn btn-danger"
+				(keyup.enter)="confirmDelete()" (click)="confirmDelete()">Ok</button>
 		</div>
 	</ng-template>
 </div>

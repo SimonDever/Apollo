@@ -53,7 +53,7 @@ export class MetadataComponent implements OnInit, OnDestroy, AfterViewInit {
 	) { }
 
 	ngAfterViewInit() {
-		let el = this.elementRef.nativeElement.querySelector('#metadata');
+		const el = this.elementRef.nativeElement.querySelector('#metadata');
 		el.scrollIntoView({ 
 			behavior: 'smooth' 
 		});

@@ -2,6 +2,19 @@
 	margin: 100px auto;
 }
 
+.dropdown-list {
+	color: white;
+}
+
+.dropdown-list-background {
+	background-color: #fff;
+}
+
+.dropdown-list-background button:not(:last-child) {
+	border-bottom: 1px solid #d0d0d0;
+	text-align: center;
+}
+
 hr {
 	width: 50%;
 	border-color: var(--foreground);

@@ -21,9 +21,27 @@
 	<button class="btn btn-outline-light" (click)="showChangePathDialog(changePathDialog)">Change All File Paths</button>
 
 	<button class="btn btn-outline-light" (click)="cleanArrays()">Clean Arrays</button>
+
+	<button class="btn btn-outline-light" (click)="touchAll()">Touch all entries</button>
 	
 	<button class="btn btn-outline-light" (click)="showApiKeyDialog(apiKeyDialog)">Add API Key</button>
-		
+	
+	<div ngbDropdown class="dropdown-list" [autoClose]="'outside'" [placement]="'bottom'">
+		<button class="btn btn-outline-light" ngbDropdownToggle>
+			{{ length(removeFieldsData)
+					? length(removeFieldsData) + ' fields selected for removal'
+					: 'Select which fields to remove...'
+			}}
+		</button>
+		<div ngbDropdownMenu class="dropdown-list-background">
+			<button class="dropdown-item" *ngFor="let option of removeFieldsOptions"
+				(click)="checkRemoveFieldOption($event, option)">
+				<span *ngIf="removeFieldsData[option]">✓ </span>{{ option }}
+			</button>
+		</div>
+	</div>
+	<button class="btn btn-outline-light" (click)="removeAllFields()">Remove all fields</button>
+
 	<button class="btn btn-danger" (click)="deleteLibrary()">Delete library</button>
 	
 	<!-- 
@@ -41,49 +59,48 @@
 </div>
 
 <ng-template #apiKeyDialog let-modal>
-	<div class="modal-header">
-		<h4 class="modal-title" id="modal-basic-title">API Key</h4>
-		<button type="button" class="close" data-dismiss="modal" (click)="closeModal()" aria-label="Close">
-			<span aria-hidden="true">&times;</span>
-		</button>
-	</div>
-	<div class="modal-body">
-		<form [formGroup]="apiKeyForm">
-			<div class="form-group">
-				<div class="input-group">
-					<input formControlName="apiKey" class="form-control" />
+	<form [formGroup]="apiKeyForm">
+		<div class="modal-header">
+			<h4 class="modal-title" id="modal-basic-title">API Key</h4>
+			<button type="button" class="close" data-dismiss="modal" (click)="closeModal()" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			</button>
+		</div>
+		<div class="modal-body">
+				<div class="form-group">
+					<div class="input-group">
+						<input formControlName="apiKey" class="form-control" />
+					</div>
 				</div>
-			</div>
-		</form>
-	</div>
-	<div class="modal-footer">
-		<button type="button" class="btn btn-outline-light" (click)="saveApiKey()">Save</button>
-	</div>
+		</div>
+		<div class="modal-footer">
+			<button type="submit" class="btn btn-outline-light" (click)="saveApiKey()">Save</button>
+		</div>
+	</form>
 </ng-template>
 
-
 <ng-template #changePathDialog let-modal>
-	<div class="modal-header">
-		<h4 class="modal-title" id="modal-basic-title">Change All File Paths</h4>
-		<button type="button" class="close" data-dismiss="modal" (click)="closeModal()" aria-label="Close">
-			<span aria-hidden="true">&times;</span>
-		</button>
-	</div>
-	<div class="modal-body">
-		<p>For example:</p>
-		<ul>
-			<li>\\Synology\Movies\</li>
-			<li>M:\</li>
-		</ul>
-		<form [formGroup]="changePathForm">
-			<div class="form-group">
-				<div class="input-group">
-					<input formControlName="filepath" class="form-control" />
+	<form [formGroup]="changePathForm">
+		<div class="modal-header">
+			<h4 class="modal-title" id="modal-basic-title">Change All File Paths</h4>
+			<button type="button" class="close" data-dismiss="modal" (click)="closeModal()" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			</button>
+		</div>
+		<div class="modal-body">
+			<p>For example:</p>
+			<ul>
+				<li>\\Synology\Movies\</li>
+				<li>M:\</li>
+			</ul>
+				<div class="form-group">
+					<div class="input-group">
+						<input formControlName="filepath" class="form-control" />
+					</div>
 				</div>
-			</div>
-		</form>
-	</div>
-	<div class="modal-footer">
-		<button type="button" class="btn btn-outline-light" (click)="changeAllFilePaths()">Save</button>
-	</div>
+		</div>
+		<div class="modal-footer">
+			<button type="submit" class="btn btn-outline-light" (click)="changeAllFilePaths()">Save</button>
+		</div>
+	</form>
 </ng-template>

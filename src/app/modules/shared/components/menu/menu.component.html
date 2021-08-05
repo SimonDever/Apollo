@@ -146,6 +146,29 @@
 											data-onlabel="Right" data-offlabel="Left">
 									</div>
 								</span>
+
+								<label for="metaSearchDropdown">Fields to auto download</label>
+								<small>Title is implicitly included</small>
+								<select (change)="save()" multiple name="metadataSearchFields" formControlName="metadataSearchFields">
+									<option *ngFor="let option of metaSearchOptions" [value]="option">
+										{{ option }}
+									</option>
+								</select>
+
+								<!-- 
+								<div ngbDropdown class="d-inline-block" autoClose="outside">
+									<button class="btn btn-outline-primary" id="metaSearchDropdown" ngbDropdownToggle>
+										{{ data.length ? data.length + ' checked' : 'Select' }}
+									</button>
+									<div ngbDropdownMenu aria-labelledby="metaSearchDropdown">
+										<button class="dropdown-item" *ngFor="let option of metaSearchOptions"
+											(click)="checkMetadataSearchOption(option)">
+											<span *ngIf="metaSearchData.includes(option)">✓ </span>{{option}}
+										</button>
+									</div>
+								</div>
+								-->
+								
 							</form>
 						</span>
 					</div>
@@ -170,12 +193,11 @@
 			</div>
 		</div>
 		
-		<div ngbDropdown class="mr-3 ml-0">
+		<div ngbDropdown class="mr-3 ml-0" *ngIf="sorting">
 			<button id="sortByButton" class="btn btn-outline-light btn-no-outline" ngbDropdownToggle>Sort by: {{sorting.field | titlecase}}</button>
 			<div ngbDropdownMenu aria-labelledby="sortByButton" class="dropdown-menu-sortby">
 				<button ngbDropdownItem (click)="sortBy('title')">Title</button>
 				<button ngbDropdownItem (click)="sortBy('year')">Year</button>
-				<!-- <button ngbDropdownItem (click)="sortBy('file')">Video File</button> -->
 			</div>
 		</div>
 		
