@@ -35,13 +35,13 @@ export class MetadataComponent implements OnInit, OnDestroy, AfterViewInit {
 	selectedEntry$;
 	tempEntry;
 
-	@ViewChild('entryPopover', { static: false })
+	@ViewChild('entryPopover')
 	public entryPopup: NgbPopover;
 
-	@ViewChild('posterPopover', { static: false })
+	@ViewChild('posterPopover')
 	public posterPopup: NgbPopover;
 
-	@ViewChild('savePopover', { static: false })
+	@ViewChild('savePopover')
 	public savePopup: NgbPopover;
 
 	constructor(private store: Store<fromLibrary.LibraryState>,

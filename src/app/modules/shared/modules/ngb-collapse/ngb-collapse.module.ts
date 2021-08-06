@@ -6,7 +6,7 @@ import { NGB_COLLAPSE_DIRECTIVES } from './ngb-collapse.directive';
 	exports: NGB_COLLAPSE_DIRECTIVES
 })
 export class NgbCollapseModule {
-	static forRoot(): ModuleWithProviders {
+	static forRoot(): ModuleWithProviders<NgbCollapseModule> {
 		return {
 			ngModule: NgbCollapseModule,
 			providers: []

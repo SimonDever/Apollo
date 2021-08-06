@@ -65,7 +65,7 @@ import { LibraryEffects } from '../library/store/library.effects';
 	]
 })
 export class SharedModule {
-	static forRoot(): ModuleWithProviders {
+	static forRoot(): ModuleWithProviders<SharedModule> {
 		return {
 			ngModule: SharedModule,
 			providers: [

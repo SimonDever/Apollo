@@ -36,7 +36,7 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 	fragment: string;
 	selectedEntry: Entry;
 
-	@ViewChild(VirtualScrollerComponent, { static: false })
+	@ViewChild(VirtualScrollerComponent)
 	private virtualScroller: VirtualScrollerComponent;
 
 	constructor(private store: Store<fromLibrary.LibraryState>,
