@@ -46,6 +46,7 @@
     "publish": "./node_modules/.bin/publish"
   },
   "dependencies": {
+    "7zip": "0.0.6",
     "@angular/animations": "^9.1.13",
     "@angular/cdk": "^9.2.4",
     "@angular/cdk-experimental": "^9.2.4",
@@ -54,18 +55,18 @@
     "@angular/compiler": "^9.1.13",
     "@angular/core": "^9.1.13",
     "@angular/forms": "^9.1.13",
+    "@angular/localize": "^9.1.13",
     "@angular/platform-browser": "^9.1.13",
     "@angular/platform-browser-dynamic": "^9.1.13",
     "@angular/platform-server": "^9.1.13",
     "@angular/router": "^9.1.13",
-    "@ng-bootstrap/ng-bootstrap": "^5.1.1",
+    "@ng-bootstrap/ng-bootstrap": "^6.2.0",
     "@ngrx/effects": "^8.3.0",
     "@ngrx/entity": "^8.3.0",
     "@ngrx/router-store": "^8.3.0",
     "@ngrx/store": "^8.3.0",
     "@primer/octicons": "^9.1.1",
     "@types/nedb": "^1.8.9",
-    "7zip": "0.0.6",
     "bootstrap": "^4.1.2",
     "bootstrap-switch-button": "^1.1.0",
     "core-js": "^3.2.1",
@@ -78,7 +79,7 @@
     "ng2-dragula": "^2.1.1",
     "ngrx-store-freeze": "^0.2.4",
     "ngx-electron": "2.2.0",
-    "ngx-virtual-scroller": "^4.0.3",
+    "ngx-virtual-scroller": "lincolnthree/ngx-virtual-scroller#automatic-element-sizing",
     "path": "^0.12.7",
     "popper.js": "^1.15.0",
     "rxjs": "^6.5.3",
@@ -114,6 +115,6 @@
     "karma-jasmine": "^2.0.1",
     "karma-jasmine-html-reporter": "^1.4.2",
     "tslint": "^5.20.0",
-    "typescript": "^3.8.3"
+    "typescript": "~3.8.3"
   }
 }
