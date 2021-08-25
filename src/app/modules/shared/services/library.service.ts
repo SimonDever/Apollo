@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, NgZone, TemplateRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as fromLibrary from '../../library/store';
 import * as LibraryActions from '../../library/store/library.actions';
@@ -11,6 +11,8 @@ import { take, map } from 'rxjs/operators';
 import { Entry } from '../../library/store/entry.model';
 import { Subject, BehaviorSubject, Observable } from 'rxjs';
 import { Sorting } from '../models/sorting.model';
+import { DomSanitizer } from '@angular/platform-browser';
+import { ModalDismissReasons, NgbModalRef, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 const uuid = require('uuid/v4');
 
@@ -18,12 +20,14 @@ const uuid = require('uuid/v4');
 	providedIn: 'root',
 })
 export class LibraryService {
+	selectedEntry: any;
 	selectedEntryId: any;
 	userDataFolder: string;
 	fs: any;
 	entries: Entry[];
 	entries$: Observable<Entry[]>;
 	sorting$: Observable<Sorting>;
+	modalRef: NgbModalRef;
 
 	// Regular expression for image type:
 	// This regular image extracts the "jpeg" from "image/jpeg"
@@ -35,6 +39,8 @@ export class LibraryService {
 		private router: Router,
 		private location: Location,
 		private zone: NgZone,
+		private modalService: NgbModal,
+		private domSanitizer: DomSanitizer,
 		private navigationService: NavigationService,
 		private electronService: ElectronService,
 		private storageService: StorageService,
@@ -44,10 +50,17 @@ export class LibraryService {
 		this.sorting$ = this.sortingSubject.asObservable();
 		this.userDataFolder = this.electronService.remote.app.getPath('userData');
 		this.fs = this.electronService.remote.require('fs');
+		
 		this.entries$ = this.store.pipe(select(fromLibrary.getAllEntries));
 		this.entries$.pipe(map((entries: Entry[]) => {
 			this.entries = entries;
 		})).subscribe();
+
+		this.store.pipe(select(fromLibrary.getSelectedEntry),
+			map(selectedEntry => this.selectedEntry = selectedEntry)).subscribe();
+
+		this.store.pipe(select(fromLibrary.getSelectedEntryId),
+			map((id: string) => this.selectedEntryId = id)).subscribe();
 	}
 
 	setSelectedEntryId(id: any) {
@@ -56,14 +69,6 @@ export class LibraryService {
 
 	getSelectedEntryId() {
 		return this.selectedEntryId;
-	}
-
-	touch(event: Event, entry: any) {
-		if (!entry.touched) {
-			entry.touched = true;
-			this.saveEntry(entry);
-			console.debug('touch saved', entry);
-		}
 	}
 
 	triggerSort(sorting: Sorting) {
@@ -92,7 +97,7 @@ export class LibraryService {
 					if (first < second) {
 						return -1;
 					} else if (first === second) {
-						return 0;
+						return a.id.localeCompare(b.id);
 					} else {
 						return 1;
 					}
@@ -100,7 +105,7 @@ export class LibraryService {
 					if (first < second) {
 						return 1;
 					} else if (first === second) {
-						return 0;
+						return a.id.localeCompare(b.id);
 					} else {
 						return -1;
 					}
@@ -109,8 +114,14 @@ export class LibraryService {
 				first = a[sorting.field];
 				second = b[sorting.field];
 				if (sorting.direction === 'asc' && first) {
+					if (first === second) {
+						return a.id.localeCompare(b.id);
+					}
 					return second ? first.localeCompare(second) : -1;
 				} else if (second) {
+					if (first === second) {
+						return b.id.localeCompare(a.id);
+					}
 					return first ? second.localeCompare(first) : 1;
 				}
 			}
@@ -158,7 +169,7 @@ export class LibraryService {
 	}
 	
 	convertUrlPath(entry: any) {
-		console.log('libraryService :: convertUrlPath :: entry');
+		console.debug('libraryService :: convertUrlPath :: entry');
 		if (entry.poster_path) {
 			const url = `http://image.tmdb.org/t/p/original${entry.poster_path}`;
 			const filename = entry.poster_path.substring(1);
@@ -180,7 +191,7 @@ export class LibraryService {
 	}
 
 	createEntry(file) {
-		console.log('libraryService :: createEntry :: entry');
+		console.debug('libraryService :: createEntry :: entry');
 		const tempTitle = file.name
 			.replace(/\.[^/.]+$/, '')
 			.replace(/\(\d{4}\)/, '')
@@ -189,11 +200,11 @@ export class LibraryService {
 
 		const entries: Entry[] = this.entries.filter((entry) => {
 			const exists = file.path === entry.file;
-			console.log(`createEntry :: file.path (${file.path}) === entry.file (${entry.file}): ${exists}`);
+			console.debug(`createEntry :: file.path (${file.path}) === entry.file (${entry.file}): ${exists}`);
 			return exists;
 		});
 
-		console.log('libraryService :: createEntry :: entries.length', entries.length);
+		console.debug('libraryService :: createEntry :: entries.length', entries.length);
 		const duplicates = entries.map((e: Entry) => `
 			Title: ${e.title}
 			Path: ${e.path}
@@ -202,39 +213,65 @@ export class LibraryService {
 		if (entries.length > 0 && !confirm('Possible duplicate detected ' + duplicates)) {
 			return;
 		}
-		/* if (confirm(`Still want to add ${file.path} when you
-				already have ${existingEntriesForFile.join(', ')}.`)) { */
+
 		const newEntry = {
 			id: uuid(),
 			title: tempTitle,
 			file: file.path,
 		};
-		console.log('libraryService :: createEntry :: newEntry', newEntry);
+		console.debug('libraryService :: createEntry :: newEntry', newEntry);
 		this.store.dispatch(new LibraryActions.ImportEntry({ entry: newEntry }));
+	}
 
-		/*	}
+	toggleActions(event: Event, entry: any) {
+		event.preventDefault();
+		this.touch(event, entry);
+		if (this.selectedEntryId === entry.id) {
+			this.store.dispatch(new LibraryActions.DeselectEntry());
 		} else {
-			this.store.dispatch(new LibraryActions.ImportEntry({ entry: {
-				id: uuid(),
-				title: tempTitle,
-				file: file.path
-			}}));
-		} */
-		/* 
-		this.storageService.exists(file.path).pipe(take(1), map(files => {
-			const exists = Array.isArray(files) && files.length > 0;
-			// TODO: move this confirm option into settings page to allow duplicates
-			if (!exists  || confirm(`Still want to add ${filename} when you already have ${files.join(', ')}.`)) {
-				this.store.dispatch(new LibraryActions.ImportEntry({ entry: {
-					id: uuid(),
-					title: tempTitle,
-					file: file.path
-				}}));
-			} else {
-				console.log('Duplicate detected', file.path);
+			this.store.dispatch(new LibraryActions.SelectEntry({ id: entry.id }));
+		}
+	}
+
+	edit(event: Event, entry: any) {
+		event.stopPropagation();
+		console.debug('edit', event, entry);
+		if (entry && !this.selectedEntryId) {
+			this.store.dispatch(new LibraryActions.SelectEntry({ id: entry.id }));
+		}
+		this.zone.run(() => this.router.navigate(['/library/edit']));
+	}
+
+	play(event: Event, entry: Entry) {
+		event.stopPropagation();
+		console.debug('play - file:', entry.file);
+		this.electronService.ipcRenderer.send('play-video', entry.file);
+	}
+
+	touch(event: Event, entry: any) {
+		if (!entry.touched) {
+			const newEntry = {...entry, touched: true };
+			this.saveEntry(newEntry);
+			console.debug('touch saved', entry);
+		}
+	}
+
+	trash() {
+		console.debug('searchResult :: trash :: this.selectedEntryId:', this.selectedEntryId);
+		this.store.dispatch(new LibraryActions.RemoveEntry({ id: this.selectedEntryId }));
+	}
+
+	getPosterSrc(entry: Entry) {
+		if (entry.poster_path) {
+			if (entry.poster_path.toLowerCase().startsWith('c:\\')) {
+				return this.domSanitizer.bypassSecurityTrustResourceUrl('file://' + entry.poster_path);
+			} else if (entry.poster_path.startsWith('data:image')) {
+				return entry.poster_path;
 			}
-		})).subscribe();
-		*/
+		} else {
+			console.warn('Missing poster', entry);
+			return '';
+		}
 	}
 
 	decodeBase64Image(dataString: string) {
@@ -254,5 +291,36 @@ export class LibraryService {
 			console.debug('electronService remove writeFile - image updated');
 			err ? console.log(err) : console.log('poster written to disk');
 		});
+	}
+
+	getDismissReason(reason: any): string {
+		if (reason === ModalDismissReasons.ESC) {
+			return 'by pressing ESC';
+		} else if (reason === ModalDismissReasons.BACKDROP_CLICK) {
+			return 'by clicking on a backdrop';
+		} else if (reason === 'close') {
+			return 'by pressing x on the modal';
+		} else {
+			return `with: ${reason}`;
+		}
+	}
+	
+	showDeleteConfirmation(event: Event, content: TemplateRef<any>, entry: any) {
+		event.stopPropagation();
+		if (entry && !this.selectedEntryId) {
+			this.store.dispatch(new LibraryActions.SelectEntry({ id: entry.id }));
+		}
+		this.modalRef = this.modalService.open(content);
+	}
+
+	closeDeleteModal(event: Event, reason: string) {
+		console.debug('closeDeleteModal ::', event, reason);
+		if (reason === 'delete') {
+			console.debug('closeDeleteModal :: trashing');
+			this.trash();
+			this.modalRef.close('delete');
+		} else {
+			this.modalRef.close('cancel');
+		}
 	}
 }

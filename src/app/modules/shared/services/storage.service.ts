@@ -4,6 +4,7 @@ import { Observable, forkJoin } from 'rxjs';
 import { Entry } from '../../library/store/entry.model';
 import * as Datastore from 'nedb';
 import { ElectronService } from 'ngx-electron';
+import { DomSanitizer } from '@angular/platform-browser';
 
 const uuid = require('uuid/v4');
 
@@ -14,8 +15,15 @@ export class StorageService {
 
 	datastore;
 	config;
+	
+  public fs: any;
 
-	constructor(private electronService: ElectronService) {
+	constructor(
+		private electronService: ElectronService,
+		private sanitizer: DomSanitizer,
+	) {
+		this.fs = this.electronService.remote.require("fs");
+
 		this.datastore = new Datastore({
 			filename: `${this.electronService.remote.app.getPath('userData')}\\library-database.json`,
 			autoload: true
@@ -103,17 +111,6 @@ export class StorageService {
 	}
 
 
-	getEntries(): Observable<Entry[]> {
-		return new Observable(subscriber => {
-			this.datastore.find({}, (err, entries) => {
-				if (err) {
-					subscriber.error(err);
-				}
-				console.debug('getEntries()', entries);
-				subscriber.next(entries);
-			});
-		});
-	}
 
 	getAllGenres(): Observable<any[]> {
 		return new Observable(subscriber => {
@@ -213,6 +210,10 @@ export class StorageService {
 		});
 	}
 
+	getBase64(file) {
+		return this.fs.readFileSync(file, {encoding: 'base64'});
+	}
+
 	getAllEntries(): Observable<Entry[]> {
 		console.debug(`StorageService - load - this.datastore.filename: ${this.datastore.filename}`);
 		return new Observable(subscriber => {
@@ -220,13 +221,20 @@ export class StorageService {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					console.log('getAllEntries - entries', entries);
+					/*
+					console.log('getAllEntries - before converting poster', Date.now());
+					entries.forEach((entry: Entry) => {                   
+						entry.poster_path = 'data:image/png;base64,'
+							+ this.fs.readFileSync(entry.poster_path, {encoding: 'base64'});
+					});
+					console.log('getAllEntries - after converting poster', Date.now());
+					*/
 					subscriber.next(entries);
 				}
 			});
 		});
 	}
-	
+
 	searchEntry(input: string): Observable<Entry[]> {
 		if (input.includes(':')) {
 			const parts = input.split(':');

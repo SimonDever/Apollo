@@ -2,12 +2,12 @@
   "name": "apollo",
   "productName": "Apollo",
   "description": "Desktop movie organiser",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "author": "Simon Dever",
   "copyright": "© 2021, Simon Dever",
   "private": true,
   "license": "UNLICENSED",
-  "main": "app/app.js",
+  "main": "app-out/app.js",
   "repository": {
     "url": "https://github.com/simondever/apollo.git"
   },
@@ -17,7 +17,7 @@
   "build": {
     "appId": "com.github.simondever.apollo",
     "files": [
-      "app/**/*",
+      "app-out/**/*",
       "node_modules/**/*",
       "package.json",
       "!updates.json",
@@ -41,7 +41,7 @@
     "debug-electron": "setx ELECTRON_ENABLE_LOGGING true && electron . --enable-logging",
     "start": "ng build && ./node_modules/electron/dist/electron.exe .",
     "dont-use-packager": "./node_modules/.bin/electron-packager .",
-    "package": "rm -rf app dist && npm run build && electron-builder",
+    "package": "rm -rf app-out dist && npm run build && electron-builder",
     "electron-builder": "electron-builder",
     "publish": "./node_modules/.bin/publish"
   },
@@ -61,12 +61,14 @@
     "@angular/platform-server": "^9.1.13",
     "@angular/router": "^9.1.13",
     "@ng-bootstrap/ng-bootstrap": "^6.2.0",
-    "@ngrx/effects": "^8.3.0",
-    "@ngrx/entity": "^8.3.0",
-    "@ngrx/router-store": "^8.3.0",
-    "@ngrx/store": "^8.3.0",
+    "@ngrx/effects": "^9.2.1",
+    "@ngrx/entity": "^9.2.1",
+    "@ngrx/router-store": "^9.2.1",
+    "@ngrx/store": "^9.2.1",
     "@primer/octicons": "^9.1.1",
+    "@tweenjs/tween.js": "^17.4.0",
     "@types/nedb": "^1.8.9",
+    "@types/tween.js": "17.2.0",
     "bootstrap": "^4.1.2",
     "bootstrap-switch-button": "^1.1.0",
     "core-js": "^3.2.1",
@@ -79,7 +81,7 @@
     "ng2-dragula": "^2.1.1",
     "ngrx-store-freeze": "^0.2.4",
     "ngx-electron": "2.2.0",
-    "ngx-virtual-scroller": "lincolnthree/ngx-virtual-scroller#automatic-element-sizing",
+    "ngx-ui-scroll": "^2.2.0",
     "path": "^0.12.7",
     "popper.js": "^1.15.0",
     "rxjs": "^6.5.3",
@@ -94,7 +96,7 @@
     "@angular-devkit/core": "^9.1.15",
     "@angular/compiler-cli": "^9.1.13",
     "@angular/language-service": "^9.1.13",
-    "@ngrx/store-devtools": "^8.3.0",
+    "@ngrx/store-devtools": "^9.2.1",
     "@types/jasmine": "^3.4.1",
     "@types/jasminewd2": "^2.0.7",
     "@types/node": "^12.11.1",
@@ -115,6 +117,6 @@
     "karma-jasmine": "^2.0.1",
     "karma-jasmine-html-reporter": "^1.4.2",
     "tslint": "^5.20.0",
-    "typescript": "~3.8.3"
+    "typescript": "~3.7.7"
   }
 }

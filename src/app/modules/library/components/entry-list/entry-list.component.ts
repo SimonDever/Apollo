@@ -1,12 +1,7 @@
-import { AfterViewInit, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, TemplateRef, ViewChild, ElementRef } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
-import { ActivatedRoute, Router, RouterStateSnapshot } from '@angular/router';
-import { ModalDismissReasons, NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { ElectronService } from 'ngx-electron';
-import { VirtualScrollerComponent } from 'ngx-virtual-scroller';
-import { Observable, Subscription, forkJoin, combineLatest } from 'rxjs';
-import { map, mergeMap, concatMap, withLatestFrom, startWith, tap } from 'rxjs/operators';
+import { Observable, Subscription } from 'rxjs';
+import { map, withLatestFrom } from 'rxjs/operators';
 import { fadeInOut } from '../../../shared/animations/animations';
 import { LibraryService } from '../../../shared/services/library.service';
 import { NavigationService } from '../../../shared/services/navigation.service';
@@ -22,53 +17,36 @@ import * as LibraryActions from '../../store/library.actions';
 })
 export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 
-	routerState: RouterStateSnapshot;
+	config: any;
+	config$: Observable<any>;
 	entries$: Observable<Entry[]>;
-	entries: Entry[];
-	closeResult;
-	modalRef: NgbModalRef;
+	selectedEntry: Entry;
 	selectedEntryId: string;
 	subs: Subscription;
-	entriesSub: Subscription;
-	selected = [];
-	config$;
-	config;
-	fragment: string;
-	selectedEntry: Entry;
 
-	@ViewChild(VirtualScrollerComponent)
-	private virtualScroller: VirtualScrollerComponent;
-
-	constructor(private store: Store<fromLibrary.LibraryState>,
-		private navigationService: NavigationService,
-		private zone: NgZone,
-		private elementRef: ElementRef,
-		private cdRef: ChangeDetectorRef,
-		private modalService: NgbModal,
+	constructor(
 		private libraryService: LibraryService,
-		private sanitizer: DomSanitizer,
-		private electronService: ElectronService,
-		private route: ActivatedRoute,
-		private router: Router) {
-		this.routerState = router.routerState.snapshot;
-		this.fragment = router.routerState.snapshot.root.fragment;
-	}
+		private navigationService: NavigationService,
+		private store: Store<fromLibrary.LibraryState>,
+	) {}
 
 	ngOnInit() {
-
 		this.subs = this.store.pipe(select(fromLibrary.getConfig),
 			map(config => this.config = config)).subscribe();
 
-			this.entries$ = this.store.pipe(select(fromLibrary.getAllEntries)).pipe(
-				withLatestFrom(this.libraryService.sorting$),
-				map(([entries, sorting]) => {
-					this.entries = this.libraryService.sortBy(entries, sorting);
-					this.navigationService.setBookmarks(this.entries);
-					console.log('entry list get entries and sort - forkJoin - entries', entries, sorting);
-					return entries;
-				})
-			);
-/* 
+		this.entries$ = this.store.pipe(
+			select(fromLibrary.getAllEntries),
+			withLatestFrom(this.libraryService.sorting$),
+			map(([entries, sorting]) => {
+				console.debug('entries$ subscription - Sorting', sorting);
+				const sortedEntries = this.libraryService.sortBy(entries, sorting);
+				console.debug('entries$ subscription - Setting bookmarks');
+				this.navigationService.setBookmarks(sortedEntries);
+				return sortedEntries;
+			})
+		);
+
+		/* 
 		this.subs.add(
 			this.libraryService.sortingSubject.asObservable().pipe(
 				tap((v) => console.log('sorting sub, bv:',v)),
@@ -78,10 +56,11 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 				this.navigationService.setBookmarks(this.entries);
 				console.log('entry list get entries and sort - forkJoin - entries', entries, sorting);
 			})).subscribe()
-		); */
+		);
+		*/
 
-
-		this.subs.add(this.store.pipe(select(fromLibrary.getNeedEntries),
+		this.subs.add(this.store.pipe(
+			select(fromLibrary.getNeedEntries),
 			map(needEntries => {
 				console.log('entryListComponent :: needEntries', needEntries);
 				if (needEntries) {
@@ -90,99 +69,75 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 			})
 		).subscribe());
 
-		this.subs.add(this.store.pipe(select(fromLibrary.getSelectedEntry),
-			map(selectedEntry => this.selectedEntry = selectedEntry)).subscribe());
+		this.subs.add(this.store.pipe(
+			select(fromLibrary.getSelectedEntry),
+			map(selectedEntry => this.selectedEntry = selectedEntry)
+		).subscribe());
 
-		this.subs.add(this.store.pipe(select(fromLibrary.getSelectedEntryId),
-			map((id: string) => this.selectedEntryId = id)).subscribe());
-
-		this.cdRef.detectChanges(); // TODO: confirm still needed
+		this.subs.add(this.store.pipe(
+			select(fromLibrary.getSelectedEntryId),
+			map(id => this.selectedEntryId = id)
+		).subscribe());
 	}
 
 	ngAfterViewInit() {
 		if (!this.config.tableFormat) {
 			this.subs.add(this.navigationService.bookmark$.pipe(map((char: string) => {
-				this.virtualScroller.scrollInto(this.navigationService.getBookmark(char));
+				const entry = this.navigationService.getBookmark(char);
+				if (entry) {
+					document.querySelector(`#entry-${entry.id}`).scrollIntoView({ behavior: 'smooth' });
+				} else {
+					console.warn('Could not find any entry close to bookmark');
+					window.scrollTo(0, 0);
+				}
 			})).subscribe());
 
-			// TODO: either this or the one above
-			this.scrollToSelectedEntry();
-		} else {
-			// TODO: scroll to selected entry in table format
+			setTimeout(() => this.scrollToSelectedEntry());
 		}
 	}
 
-	scrollToSelectedEntry(): void {
+	/* setPosterCache(entries: Entry[]): Entry[] {
+		const start = Date.now();
+		console.debug('entries$ subscription - Starting to preload images');
+		entries.map(e => {
+			const newPoster = new Image();
+			newPoster.src = e.poster_path;
+			this.posterCache.set(e.poster_path, newPoster);
+		});
+		console.debug('entries$ subscription - Finished preloading images', Date.now() - start + 'ms');
+		return entries;
+	} */
+
+	scrollToSelectedEntry() {
 		console.log('scrollToSelectedEntry', this.selectedEntryId, this.selectedEntry);
 		if (this.selectedEntryId != null) {
-			// console.log(`scrollTo - about to scroll to selectedEntryId ${this.selectedEntryId}`);
-			// TODO: Don't call if entry is already fully visible to prevent animation trigger
-			
-			//const box = document.querySelector(`#entry-${this.selectedEntryId}`);
-			//console.log('box', box);
-			//box.scrollIntoView({ behavior: 'smooth' });
-			this.virtualScroller.scrollInto(this.selectedEntry);
+			const box = document.querySelector(`#entry-${this.selectedEntryId}`);
+			box.scrollIntoView({ behavior: 'smooth' });
 		}
 	}
 
-	closeDeleteModal(reason) {
-		console.log('searchResults :: closeModal :: reason:', reason);
-		if (reason === 'delete') {
-			console.log('searchResults :: closeModal :: trashing');
-			this.trash();
-			this.modalRef.close('delete');
-		} else {
-			this.modalRef.close('cancel');
-		}
+	closeDeleteModal(event: Event, reason: string) {
+		this.libraryService.closeDeleteModal(event, reason);
 	}
 
 	ngOnDestroy() {
-		if (this.subs) {
-			this.subs.unsubscribe();
-		}
+		this.subs ?	this.subs.unsubscribe() : {};
 	}
 
 	showDeleteConfirmation(event: Event, content: TemplateRef<any>, entry: any) {
-		if (entry) {
-			this.store.dispatch(new LibraryActions.SelectEntry({ id: entry.id }));
-		}
-		event.stopPropagation();
-		this.modalRef = this.modalService.open(content);
-		this.modalRef.result.then((result) => {
-			console.log('showDeleteConfirmation :: result :: ', result);
-		}, (result) => {
-			console.log('showDeleteConfirmation (fail) :: result :: ', result);
-		});
-	}
-
-	getDismissReason(reason: any): string {
-		if (reason === ModalDismissReasons.ESC) {
-			return 'by pressing ESC';
-		} else if (reason === ModalDismissReasons.BACKDROP_CLICK) {
-			return 'by clicking on a backdrop';
-		} else if (reason === 'close') {
-			return 'by pressing x on the modal';
-		} else {
-			return `with: ${reason}`;
-		}
+		this.libraryService.showDeleteConfirmation(event, content, entry);
 	}
 
 	edit(event: Event, entry: any) {
-		event.stopPropagation();
-
-		if (entry) {
-			this.store.dispatch(new LibraryActions.SelectEntry({ id: entry.id }));
-		}
-
-		// console.log(`entry-list.edit() - selectedEntryId: ${this.selectedEntryId}`);
-		this.navigationService.setEditEntryParent(this.routerState.url);
-		this.zone.run(() => this.router.navigate(['/library/edit']));
+		this.libraryService.edit(event, entry);
 	}
 
-	play(event: Event, file: string) {
-		event.stopPropagation();
-		// console.log('file:', file);
-		this.electronService.ipcRenderer.send('play-video', file);
+	toggleActions(event: Event, entry: Entry) {
+		this.libraryService.toggleActions(event, entry);
+	}
+
+	play(event: Event, entry: Entry) {
+		this.libraryService.play(event, entry);
 	}
 
 	trackById(index, item) {
@@ -190,60 +145,10 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	trash() {
-		this.store.dispatch(new LibraryActions.RemoveEntry({ id: this.selectedEntryId }));
+		this.libraryService.trash();
 	}
 
-	undecorate(entryBox: HTMLDivElement) {
-		const poster = entryBox.querySelector('.entry-poster') as HTMLImageElement;
-		const posterPreview = entryBox.querySelector('.poster-preview') as HTMLDivElement;
-		const entryActions = entryBox.querySelector('.entry-actions') as HTMLDivElement;
-		poster ? poster.style['opacity'] = '1.0' : {};
-		posterPreview.style['background-color'] = 'var(--grid-item-shadow-color)';
-		entryActions ? entryActions.style['display'] = 'none': {};
+	getPosterSrc(entry: Entry) {
+		return this.libraryService.getPosterSrc(entry);
 	}
-	
-	decorate(entryBox: HTMLDivElement) {
-		const poster = entryBox.querySelector('.entry-poster') as HTMLImageElement;
-		const posterPreview = entryBox.querySelector('.poster-preview') as HTMLDivElement;
-		const entryActions = entryBox.querySelector('.entry-actions') as HTMLDivElement;
-		poster ? poster.style['opacity'] = '0.2' : {};
-		posterPreview.style['background-color'] = 'transparent';
-		entryActions ? entryActions.style['display'] = 'flex' : {};
-	}
-
-	touch(event, entry) {
-		this.libraryService.touch(event, entry);
-	}
-
-	toggleActions(event: Event, entry: any) {
-		event.preventDefault();
-		this.touch(event, entry);
-		const entryBox = event.currentTarget as HTMLDivElement;
-		const selectedIndex = this.selected.indexOf(entryBox);
-		if (selectedIndex > -1) {
-			this.selected.splice(selectedIndex, 1);
-			this.undecorate(entryBox);
-			this.store.dispatch(new LibraryActions.DeselectEntry());
-		} else {
-			this.selected.forEach(e => this.undecorate(e));
-			this.selected = [entryBox];
-			this.decorate(entryBox);
-			this.store.dispatch(new LibraryActions.SelectEntry({ id: entry.id }));
-		}
-	}
-
-	posterUrl(path: string) {
-		if (path) {
-			if (path.toLowerCase().startsWith('c:\\')) {
-				return this.sanitizer.bypassSecurityTrustResourceUrl('file://' + path);
-			} else if (path.startsWith('data:image')) {
-				return path;
-			}
-		} else {
-			//console.log('Missing poster', path);
-			//return '';
-			return path;
-		}
-	}
-
 }

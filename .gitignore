@@ -13,6 +13,7 @@ movieapp.md
 
 # compiled output
 /app
+/app-out
 /dist
 /tmp
 /out-tsc

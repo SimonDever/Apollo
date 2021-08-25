@@ -121,6 +121,7 @@ setupMainWindow = () => {
 	mainWindow.loadURL('file://' + __dirname + '/index.html');
 
 	mainWindow.on('ready-to-show', () => {
+		mainWindow.webContents.toggleDevTools();
 		mainWindow.show();
 		mainWindow.focus();
 	});

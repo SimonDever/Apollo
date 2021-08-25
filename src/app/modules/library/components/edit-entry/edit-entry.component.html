@@ -3,7 +3,7 @@
 			[class.icon-button-box-left]='!config.editMenuPositionRight'
 			[class.icon-button-box]='config.editMenuPositionRight'>
 		<button octicon="check" class="icon-button save-button" title="Done"
-			(mousedown)="close()"></button>
+			(mousedown)="close($event)"></button>
 		<button octicon="trashcan" class="icon-button trash-button" title="Delete"
 			(mousedown)="showDeleteConfirmation($event, deleteModal)"></button>
 		<button octicon="plus" class="icon-button search-metadata-provider-button" title="Add field"

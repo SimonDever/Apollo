@@ -1,24 +1,4 @@
-.virtual-scroller {
-	height: calc(100vh - 57px);
-}
-
-::ng-deep .scrollable-content {
-	display: grid;
-	row-gap: var(--grid-row-gap);
-	column-gap: var(--grid-column-gap);
-	grid-template-columns: repeat(auto-fill, var(--grid-item-width));
-	padding: 15px;
-	height: unset !important;
-	max-width: unset !important;
-	max-height: unset !important;
-
-	margin-top: var(--grid-margin-vertical);
-	margin-bottom: var(--grid-margin-vertical);
-	margin-left: var(--grid-margin-horizontal);
-	
-	width: calc(100% - var(--grid-margin-horizontal)) !important;
-}
-
+/* 
 ::-webkit-scrollbar {
 	max-width: 25px !important;
 	max-height: 25px !important;
@@ -42,11 +22,4 @@
 	scrollbar-color: rgba(175, 175, 175, .5) #1d1d1d !important;
 	scrollbar-width: thin !important;
 }
-
-.list-filler {
-	position: absolute;
-	top: 0;
-	right: -1px;
-	width: 1px;
-	box-sizing: border-box;
-}
+ */

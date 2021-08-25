@@ -119,11 +119,21 @@ export class NavigationService {
 		while (!entry && index < alphabet.length) {
 			const nextChar = alphabet.charAt(index);
 			entry = this.bookmarks.get(nextChar);
-			console.debug(`getNextBookmark(${char}) - trying ${nextChar}) - entry:`, entry);
+			console.debug(`getNextBookmark(${char}) - trying ${nextChar} - entry:`, entry);
 			index++;
 		}
 		if (!entry) {
-			console.warn(`No bookmark entry found for ${char}.`);
+			console.debug(`getNextBookmark(${char}) - going backwards`);
+			index = alphabet.indexOf(char);
+			while (!entry && index >= 0) {
+				const prevChar = alphabet.charAt(index);
+				entry = this.bookmarks.get(prevChar);
+				console.debug(`getNextBookmark(${char}) - trying ${prevChar} - entry:`, entry);
+				index--;
+			}
+			if (!entry) {
+				console.warn(`No bookmark entry found for ${char}.`);
+			}
 		}
 		return entry;
 	}

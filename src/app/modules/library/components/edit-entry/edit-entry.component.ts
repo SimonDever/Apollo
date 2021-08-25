@@ -24,7 +24,7 @@ const uuid = require('uuid/v4');
 	styleUrls: ['./edit-entry.component.css'],
 	animations: [fadeInOut]
 })
-export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
+export class EditEntryComponent implements OnInit, OnDestroy {
 
 	defaultFieldOrder = ['title', 'overview'];
 	entry$: Observable<Entry>;
@@ -70,7 +70,7 @@ export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 	) { }
 
 	ngOnInit() {
-		console.log('EditEntryComponent Init');
+		console.debug('EditEntryComponent Init');
 		this.differ = this.differs.find([]).create();
 		this.inputList = [];
 		this.tempList = [];
@@ -81,12 +81,11 @@ export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 		this.entry$ = this.store.select(fromLibrary.getSelectedEntry);
 		
 		this.subs = this.entry$.pipe(map(entry => {
-			window.scrollTo(0, 0);
-			console.log('Edit - entry', entry);
+			console.debug('Edit - entry', entry);
 			if (!entry) {
 				console.error('Entry is null');
 			} else {
-				console.log('entry sub changed');
+				console.debug('entry sub changed');
 				if (!entry.title) {
 					entry.title = '';
 				}
@@ -134,21 +133,8 @@ export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 		this.subs.add(this.metadataSearchResponse$.subscribe(response => this.metadataSearchResult = response));
 	}
 
-	/* 
-	@HostListener('window:beforeunload', ['$event'])
-	unloadNotification($event: any) {
-		console.log(`window:beforeunload - isDirty: ${this.isDirty}`);
-		if (this.isDirty) {
-			console.log(`window:beforeunload - triggerSave event - SHOULD NOT HAPPEN`, event);
-			//this.triggerSave(event);
-		}
-		$event.returnValue = true;
-		console.log(`window:beforeunload returning`);
-	}
-	*/
-
 	ngOnDestroy() {
-		console.log(`ngOnDestroy saving dirty entry before component destroy:`, this.isDirty);
+		console.debug(`ngOnDestroy saving dirty entry before component destroy:`, this.isDirty);
 		this.saveFormIfDirty(null);
 		this.cdRef.detach();
 		this.entry = null;
@@ -158,7 +144,7 @@ export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 	}
 
 	setDirty(e: Event) {
-		console.log(`setDirty`, e);
+		console.debug(`setDirty`, e);
 		this.isDirty = true;
 	}
 
@@ -168,7 +154,7 @@ export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 		console.warn(`removeInputField - click - fieldName: ${key}`);
 		Object.entries(this.entry).forEach(([k, v]) => {
 			if (k === key) {
-				console.log('removeInputField :: removing property:', key);
+				console.debug('removeInputField :: removing property:', key);
 				this.isDirty = true;
 				this.entry[key] = null;
 				this.entryForm.removeControl(key);
@@ -222,7 +208,7 @@ export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 	}
 
 	addNewField(fieldName) {
-		console.log(`addNewField - fieldName: ${fieldName}`);
+		console.debug(`addNewField - fieldName: ${fieldName}`);
 		if (!fieldName || /(^\d)/.test(fieldName)) {
 			console.warn('prevented making field starting with number, bad for database');
 		} else {
@@ -246,13 +232,13 @@ export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 					...{ [key]: value }
 				});
 				this.isDirty = false;
-				console.log(`addNewField - Added ${key}:'' to `, this.entry);
+				console.debug(`addNewField - Added ${key}:'' to `, this.entry);
 			}
 		}
 	}
 	
 	refreshForm() {
-		console.log('refreshForm - clearing entryForm. inputList:', this.inputList);
+		console.debug('refreshForm - clearing entryForm. inputList:', this.inputList);
 		this.entryForm = this.formBuilder.group({});
 		this.inputList.forEach(input => {
 			const newFormControl = this.formBuilder.control({ value: input.value, disabled: false });
@@ -319,7 +305,7 @@ export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 		this.modalRef.result.then((result) => {
 			this.closeResult = `Closed with: ${result}`;
 		}, (reason) => {
-			this.closeResult = `Dismissed with: ${this.getDismissReason(reason)}`;
+			this.closeResult = `Dismissed with: ${this.libraryService.getDismissReason(reason)}`;
 		});
 	}
 
@@ -330,7 +316,7 @@ export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 		this.modalRef.result.then((result) => {
 			this.closeResult = `Closed with: ${result}`;
 		}, (reason) => {
-			this.closeResult = `Dismissed with: ${this.getDismissReason(reason)}`;
+			this.closeResult = `Dismissed with: ${this.libraryService.getDismissReason(reason)}`;
 		});
 	}
 
@@ -344,20 +330,8 @@ export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 				this.trash();
 			}
 		}, (reason) => {
-			this.closeResult = `Dismissed with: ${this.getDismissReason(reason)}`;
+			this.closeResult = `Dismissed with: ${this.libraryService.getDismissReason(reason)}`;
 		});
-	}
-
-	getDismissReason(reason: any): string {
-		if (reason === ModalDismissReasons.ESC) {
-			return 'by pressing ESC';
-		} else if (reason === ModalDismissReasons.BACKDROP_CLICK) {
-			return 'by clicking on a backdrop';
-		} else if (reason === 'close') {
-			return 'by pressing x on the modal';
-		} else {
-			return `with: ${reason}`;
-		}
 	}
 
 	posterChange(event) {
@@ -366,7 +340,7 @@ export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 		const poster = event.target.files[0];
 		reader.addEventListener('load', function () {
 			this.poster_path = reader.result;
-			console.log('posterChange - saving poster_path');
+			console.debug('posterChange - saving poster_path');
 			this.libraryService.saveEntry({
 				...this.entry,
 				...{ 
@@ -393,27 +367,18 @@ export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 			console.debug('electronService remote writeFile - image updated');
 			this.sendUpdateAction(changes);
 			this.navigationService.closeEditEntry(this.selectedEntryId);
-			err ? console.log(err) : console.log('poster written to disk');
+			err ? console.error(err) : console.debug('poster written to disk');
 		}).bind(this));
 	}
 
 	fileChange(event) {
 		this.saveFormIfDirty(event);
-		// this.files = event.target.files;
 		const path = event.target.files[0].path;
 		if (path == null) {
 			console.warn(`Could not get full path to video file,
 				may not be running in electron. You will not be able
 				to play this file from within the application.`);
 		}
-
-		/*
-		this.files.forEach(file => {
-			if (file.path !== '') {
-				this.files.push(this.files[0].path);
-			}
-		}, this);
-		*/
 
 		this.file = path || event.target.files[0].name;
 		const title = this.entryForm.value.title;
@@ -436,7 +401,7 @@ export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 		}
 
 		this.isDirty = true;
-		console.log('fileChange - file path saved', this.file);
+		console.debug('fileChange - file path saved', this.file);
 		this.libraryService.saveEntry({
 			...this.entry,
 			...{ 
@@ -450,11 +415,9 @@ export class EditEntryComponent implements OnInit, OnDestroy/* , DoCheck */ {
 	close(event: Event) {
 		this.saveFormIfDirty(event);
 		this.navigationService.closeEditEntry(this.selectedEntryId);
-		//this.store.dispatch(new LibraryActions.DeselectEntry());
 	}
 
 	trash() {
-		console.debug(`trash(id): ${this.entry.id}`);
-		this.store.dispatch(new LibraryActions.RemoveEntry({ id: this.entry.id }));
+		this.libraryService.trash();
 	}
 }

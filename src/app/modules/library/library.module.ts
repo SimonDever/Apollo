@@ -4,7 +4,6 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreModule } from '@ngrx/store';
 import { DragulaModule } from 'ng2-dragula';
-import { VirtualScrollerModule } from 'ngx-virtual-scroller';
 import { SharedModule } from '../shared/shared.module';
 import { EditEntryComponent } from './components/edit-entry/edit-entry.component';
 import { EntryListComponent } from './components/entry-list/entry-list.component';
@@ -14,13 +13,14 @@ import { SearchResultsComponent } from './components/search-results/search-resul
 import { LibraryRoutingModule } from './library-routing.module';
 import { reducers } from './store';
 import { LibraryEffects } from './store/library.effects';
-
+import { EntryComponent } from './components/entry/entry.component';
+import { UiScrollModule } from 'ngx-ui-scroll';
 @NgModule({
 	imports: [
 		CommonModule,
 		SharedModule,
-		VirtualScrollerModule,
 		LibraryRoutingModule,
+		UiScrollModule,
 		DragulaModule.forRoot(),
 		StoreModule.forFeature('library', reducers),
 		EffectsModule.forFeature([LibraryEffects])
@@ -38,6 +38,7 @@ import { LibraryEffects } from './store/library.effects';
 		LibraryComponent,
 		MetadataComponent,
 		SearchResultsComponent,
+		EntryComponent,
 	],
 	providers: [
 		NgbModal

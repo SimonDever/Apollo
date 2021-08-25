@@ -4,28 +4,28 @@
 	</div>
 	<div class="search-view-title">Search Results - {{searchTerms}}</div>
 	<div class="entry-list">
-		<div class="scrollable-content">
-			<div *ngFor="let entry of (entries$ | async); trackBy: trackById" class="entry-box"
-				[class.hide-touched]="entry.touched && config.showOnlyUntouched"
+		<div class="scroll-viewport">
+			<div *ngFor="let entry of entries$ | async; trackBy: trackById" class="entry-box" [id]="'entry-' + entry.id"
+				[class.selected]="selectedEntryId === entry.id"
+				[class.hide-touched]="entry.touched && config.showOnlyUntouched" 
 				[class.untouched]="!entry.touched && config.untouchedHighlight"
 				(click)="toggleActions($event, entry)">
 				<div class="poster-preview">
-					<a #selectedEntry id="selectedEntry" *ngIf="entry.id === selectedEntryId"></a>
-					<img *ngIf="posterUrl(entry.poster_path) else missingPoster" class="poster-preview entry-poster"
-						id="poster-{{entry.id}}" [src]="posterUrl(entry.poster_path)" />
-					<ng-template #missingPoster>
-						<div class="entry-poster missing-poster-icon" [color]="'#ccc'" octicon="question">
-						</div>
-					</ng-template>
+					<img *ngIf="entry.poster_path else missingPoster"	class="entry-poster" id="poster-{{entry.id}}"	[src]="getPosterSrc(entry)" /><!-- posterCache.get(entry.poster_path).src -->
+					<ng-template #missingPoster><div class="entry-poster missing-poster-icon" [color]="'#ccc'" octicon="question"></div></ng-template>
 				</div>
 				<div class="entry-actions">
-					<div class="entry-title">{{entry.title}}</div>
-					<div class="entry-blurb">{{entry.overview}}</div>
+					<div class="entry-title">
+						{{ entry.title }}
+						<span *ngIf="config.addYear && entry.year">({{ entry.year }})</span>
+						<span *ngIf="config.addYear && !entry.year && entry.release_date">({{ entry.release_date | date: 'yyyy' }})</span>
+					</div>
+					<div class="entry-blurb">{{ entry.overview }}</div>
 					<div class="icon-button-box-horizontal">
 						<button octicon="trashcan" class="icon-button trash-button"
-							(click)="showDeleteConfirmation($event, deleteModal)"></button>
-						<button octicon="pencil" class="icon-button edit-button" (click)="edit($event)"></button>
-						<button octicon="play" class="icon-button play-button" (click)="play($event, entry.file)"></button>
+							(click)="showDeleteConfirmation($event, deleteModal, entry)"></button>
+						<button octicon="pencil" class="icon-button edit-button" (click)="edit($event, entry)"></button>
+						<button octicon="play" class="icon-button play-button" (click)="play($event, entry)"></button>
 					</div>
 				</div>
 			</div>
@@ -37,7 +37,7 @@
 	<div class="modal-header">
 		<h4 class="modal-title" id="modal-basic-title">Confirm deletion</h4>
 		<button type="button" class="close" data-dismiss="modal" aria-label="Close"
-			(keyup.enter)="closeDeleteModal('close')" (click)="closeDeleteModal('close')">
+			(keyup.enter)="closeDeleteModal($event, 'close')" (click)="closeDeleteModal($event, 'close')">
 			<span aria-hidden="true">&times;</span>
 		</button>
 	</div>
@@ -47,8 +47,8 @@
 	</div>
 	<div class="modal-footer">
 		<button type="button" ngbAutofocus class="btn btn-outline-light"
-			(keyup.enter)="closeDeleteModal('cancel')" (click)="closeDeleteModal('cancel')">Cancel</button>
+			(keyup.enter)="closeDeleteModal($event, 'cancel')" (click)="closeDeleteModal($event, 'cancel')">Cancel</button>
 		<button type="button" class="btn btn-danger"
-			(keyup.enter)="closeDeleteModal('delete')" (click)="closeDeleteModal('delete')">Delete</button>
+			(keyup.enter)="closeDeleteModal($event, 'delete')" (click)="closeDeleteModal($event, 'delete')">Delete</button>
 	</div>
 </ng-template>

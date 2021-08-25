@@ -1,16 +1,22 @@
 <div class="list-view" @fadeInOut>
 	<div class="entry-list" *ngIf="config && !config.tableFormat">
-		<virtual-scroller class="virtual-scroller" #scroll [items]="entries$ | async" [bufferAmount]="100"> <!-- entries$ | async -->
-			<div *ngFor="let entry of scroll.viewPortItems" class="entry-box" [id]="'entry-'+entry.id"
-				(click)="toggleActions($event, entry)"
+<!-- 
+		<div style="position: fixed; height: 300px; width: 300px; overflow: scroll; bottom: 0; left: 0; color: white; background: #444">
+			{{ scroll.viewPortItems | json }}
+		</div> -->
+		<!-- <div class="scrollable-content"> -->
+		<div class="scroll-viewport">
+			<!--  class="virtual-scroller" -->
+		<!-- <virtual-scroller #scroll [items]="entries$ | async" [calculateDimensionsAutomatically]="true"> -->
+			<!-- <div *uiScroll="let entry of datasource" -->
+			<div *ngFor="let entry of entries$ | async; trackBy: trackById" class="entry-box" [id]="'entry-' + entry.id"
+				[class.selected]="selectedEntryId === entry.id"
 				[class.hide-touched]="entry.touched && config.showOnlyUntouched"
-				[class.untouched]="!entry.touched && config.untouchedHighlight">
+				[class.untouched]="!entry.touched && config.untouchedHighlight"
+				(click)="toggleActions($event, entry)">
 				<div class="poster-preview">
-					<img *ngIf="posterUrl(entry.poster_path) else missingPoster"
-						class="entry-poster" id="poster-{{entry.id}}"	[src]="posterUrl(entry.poster_path)" />
-					<ng-template #missingPoster>
-						<div class="entry-poster missing-poster-icon" [color]="'#ccc'" octicon="question"></div>
-					</ng-template>
+					<img *ngIf="entry.poster_path else missingPoster"	class="entry-poster" id="poster-{{entry.id}}"	[src]="getPosterSrc(entry)" /><!-- posterCache.get(entry.poster_path).src -->
+					<ng-template #missingPoster><div class="entry-poster missing-poster-icon" [color]="'#ccc'" octicon="question"></div></ng-template>
 				</div>
 				<div class="entry-actions">
 					<div class="entry-title">
@@ -21,16 +27,17 @@
 					<div class="entry-blurb">{{ entry.overview }}</div>
 					<div class="icon-button-box-horizontal">
 						<button octicon="trashcan" class="icon-button trash-button"
-							(click)="showDeleteConfirmation($event, deleteModal)"></button>
-						<button octicon="pencil" class="icon-button edit-button" (click)="edit($event)"></button>
-						<button octicon="play" class="icon-button play-button" (click)="play($event, entry.file)"></button>
+							(click)="showDeleteConfirmation($event, deleteModal, entry)"></button>
+						<button octicon="pencil" class="icon-button edit-button" (click)="edit($event, entry)"></button>
+						<button octicon="play" class="icon-button play-button" (click)="play($event, entry)"></button>
 					</div>
 				</div>
 			</div>
-		</virtual-scroller>
+		<!-- </virtual-scroller> -->
+		</div>
 	</div>
 
-	<div class="table-wrapper" *ngIf="config && config.tableFormat">
+	<!-- <div class="table-wrapper" *ngIf="config && config.tableFormat">
 		<table class="table table-fixed">
 			<thead>
 				<tr>
@@ -61,13 +68,13 @@
 				</tr>
 			</tbody>
 		</table>
-	</div>
+	</div> -->
 </div>
 
 <ng-template #deleteModal let-modal>
 	<div class="modal-header">
 		<h4 class="modal-title" id="modal-basic-title">Confirm deletion</h4>
-		<button type="button" class="close" data-dismiss="modal" (click)="closeDeleteModal('close')" aria-label="Close">
+		<button type="button" class="close" data-dismiss="modal" (click)="closeDeleteModal($event, 'close')" aria-label="Close">
 			<span aria-hidden="true">&times;</span>
 		</button>
 	</div>
@@ -76,7 +83,7 @@
 		<p class="text-danger"><strong>This operation cannot be undone.</strong></p>
 	</div>
 	<div class="modal-footer">
-		<button ngbAutofocus type="button" class="btn btn-outline-light" (keyup.enter)="closeDeleteModal('cancel')" (click)="closeDeleteModal('cancel')">Cancel</button>
-		<button type="button" class="btn btn-danger" (keyup.enter)="closeDeleteModal('delete')" (click)="closeDeleteModal('delete')">Delete</button>
+		<button ngbAutofocus type="button" class="btn btn-outline-light" (keyup.enter)="closeDeleteModal($event, 'cancel')" (click)="closeDeleteModal($event, 'cancel')">Cancel</button>
+		<button type="button" class="btn btn-danger" (keyup.enter)="closeDeleteModal($event, 'delete')" (click)="closeDeleteModal($event, 'delete')">Delete</button>
 	</div>
 </ng-template>

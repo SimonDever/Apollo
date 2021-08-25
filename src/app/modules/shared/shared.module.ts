@@ -22,7 +22,7 @@ import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { reducers } from '../library/store';
 import { LibraryEffects } from '../library/store/library.effects';
-
+// import { VirtualScrollerModule } from './modules/virtual-scroller/virtual-scroller';
 
 @NgModule({
 	declarations: [
@@ -45,7 +45,8 @@ import { LibraryEffects } from '../library/store/library.effects';
 		StoreModule.forFeature('library', reducers),
 		EffectsModule.forFeature([LibraryEffects]),
 		/* Custom */
-		NgbCollapseModule
+		NgbCollapseModule,
+		// VirtualScrollerModule,
 	],
 	exports: [
 		/* Third party */
@@ -61,7 +62,8 @@ import { LibraryEffects } from '../library/store/library.effects';
 		OcticonDirective,
 		MenuComponent,
 		PageNotFoundComponent,
-		ToastComponent
+		ToastComponent,
+		// VirtualScrollerModule,
 	]
 })
 export class SharedModule {

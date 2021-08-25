@@ -134,16 +134,16 @@ export class SearchService {
 							parsedData = this.cleanArrays(parsedData);
 							console.log('searchService :: getFirstResult :: cleanedArrays output', parsedData);
 							console.log(`searchService :: keeping only fields requested`, this.config.metadataSearchFields);
-							//const output = {};
+							const output = {...entry};
 							Object.keys(parsedData).map(key => {
 								const keep = this.config.metadataSearchFields.some(field => field === key);
 								if (keep) {
 									console.log('keeping', key, parsedData[key]);
-									entry[key] = parsedData[key];
+									output[key] = parsedData[key];
 								}
 							});
-							console.log(`searchService :: final output`, entry);
-							subscriber.next(entry);
+							console.log(`searchService :: final output`, output);
+							subscriber.next(output);
 						},
 						(err) => subscriber.error(err)
 					);

@@ -204,7 +204,7 @@ export class MetadataComponent implements OnInit, OnDestroy, AfterViewInit {
 		return false;
 	}
 
-	cancel() {
+	cancel(event) {
 		this.router.navigate(['/library/edit']);
 	}
 
@@ -213,7 +213,7 @@ export class MetadataComponent implements OnInit, OnDestroy, AfterViewInit {
 		this.router.navigate(['/library/edit']);
 	}
 
-	finish() {
+	finish(event) {
 		if (this.savedEntry == null) {
 			if (this.keepers.size > 0) {
 				this.savedEntry = {};

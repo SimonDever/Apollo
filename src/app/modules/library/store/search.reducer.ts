@@ -92,7 +92,16 @@ export function reducer(state: State = initialState, action: LibraryActions.All)
 		}
 
 		case LibraryActions.UPDATE_ENTRY: {
+			const newResults = [];
+			state.searchResults.some((entry: Entry, index: number) => {
+				if (action.payload.entry.id === entry.id) {
+					newResults.push(action.payload.entry);
+				} else {
+					newResults.push(entry);
+				}
+			});
 			return Object.assign({}, state, {
+				searchResults: newResults,
 				metadataSearchResults: null,
 				metadataDetailsResults: null
 			});

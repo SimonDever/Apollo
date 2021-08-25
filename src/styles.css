@@ -69,7 +69,7 @@ html {
 
 body {
 	padding-top: 3.5rem;
-	height: 100%;
+	height: calc(100% - 3.5rem);
 }
 
 pre {
@@ -646,4 +646,38 @@ textarea {
 
 .switch.btn {
 	min-width: 5.5rem;
+}
+
+.scroll-viewport {
+	display: grid;
+	row-gap: var(--grid-row-gap);
+	column-gap: var(--grid-column-gap);
+	grid-template-columns: repeat(auto-fill, var(--grid-item-width));
+	padding: 15px;
+	height: calc(100vh - 3.5rem);
+	margin-top: var(--grid-margin-vertical);
+	margin-bottom: var(--grid-margin-vertical);
+	margin-left: var(--grid-margin-horizontal);
+	overflow-y: auto;
+	transform: translate3d(0,0,0);
+	width: calc(100% - var(--grid-margin-horizontal)) !important;
+}
+
+.entry-box .poster-preview {
+	background-color: var(--grid-item-shadow-color);
+}
+.entry-box .entry-poster {
+	opacity: 1;
+}
+.entry-box .entry-actions {
+	display: none;
+}
+.entry-box.selected .poster-preview {
+	background-color: transparent;
+}
+.entry-box.selected .entry-poster {
+	opacity: 0.2;
+}
+.entry-box.selected .entry-actions {
+	display: flex;
 }
