@@ -83,7 +83,7 @@ export class ImportEntry implements Action {
 export const SELECT_ENTRY = '[Library] Select';
 export class SelectEntry implements Action {
 	readonly type = SELECT_ENTRY;
-	constructor(public payload: { id: any }) { }
+	constructor(public payload: { id: any, scrollTo: boolean }) { }
 }
 
 export const SHOW_RESULTS = '[Library] Show Results';

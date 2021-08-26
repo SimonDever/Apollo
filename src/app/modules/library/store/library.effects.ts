@@ -36,9 +36,19 @@ export class LibraryEffects {
 		tap(entry => console.log('libraryEffects :: updateEntry', entry)),
 		mergeMap(entry => this.storageService.updateEntry(entry.id, entry)),
 		switchMap((entry: Entry) => [
-			new LibraryActions.SelectEntry({id: entry.id}),
+			new LibraryActions.SelectEntry({id: entry.id, scrollTo: false}),
 			new LibraryActions.LoadGenres()
 		]));
+		
+	@Effect({dispatch: false})
+	selectEntry$ = this.actions$.pipe(
+		ofType(LibraryActions.SELECT_ENTRY),
+		map(action => (action as LibraryActions.SelectEntry).payload),
+		tap(payload => {
+			if (payload && payload.id && payload.scrollTo) {
+				this.libraryService.scrollTo(payload.id);
+			}
+		}));
 		
 	@Effect()
 	deleteAllEntries$: Observable<Action> = this.actions$.pipe(
@@ -87,7 +97,7 @@ export class LibraryEffects {
 		map(entry => this.searchService.cleanArrays(entry)),
 		mergeMap(entry => this.storageService.addEntry(entry)),
 		switchMap(entry => [
-			new LibraryActions.SelectEntry({ id: entry.id }),
+			new LibraryActions.SelectEntry({ id: entry.id, scrollTo: true }),
 			new LibraryActions.LoadGenres()
 		]));
 

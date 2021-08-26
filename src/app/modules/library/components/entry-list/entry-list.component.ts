@@ -109,11 +109,7 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 	} */
 
 	scrollToSelectedEntry() {
-		console.log('scrollToSelectedEntry', this.selectedEntryId, this.selectedEntry);
-		if (this.selectedEntryId != null) {
-			const box = document.querySelector(`#entry-${this.selectedEntryId}`);
-			box.scrollIntoView({ behavior: 'smooth' });
-		}
+		this.libraryService.scrollTo(this.selectedEntryId);
 	}
 
 	closeDeleteModal(event: Event, reason: string) {

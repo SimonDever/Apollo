@@ -229,7 +229,7 @@ export class LibraryService {
 		if (this.selectedEntryId === entry.id) {
 			this.store.dispatch(new LibraryActions.DeselectEntry());
 		} else {
-			this.store.dispatch(new LibraryActions.SelectEntry({ id: entry.id }));
+			this.store.dispatch(new LibraryActions.SelectEntry({ id: entry.id, scrollTo: false },));
 		}
 	}
 
@@ -237,7 +237,7 @@ export class LibraryService {
 		event.stopPropagation();
 		console.debug('edit', event, entry);
 		if (entry && !this.selectedEntryId) {
-			this.store.dispatch(new LibraryActions.SelectEntry({ id: entry.id }));
+			this.store.dispatch(new LibraryActions.SelectEntry({ id: entry.id, scrollTo: false }));
 		}
 		this.zone.run(() => this.router.navigate(['/library/edit']));
 	}
@@ -304,11 +304,19 @@ export class LibraryService {
 			return `with: ${reason}`;
 		}
 	}
+
+	scrollTo(entryId: string) {
+		console.log('scrollTo', entryId);
+		if (entryId) {
+			const box = document.querySelector(`#entry-${entryId}`);
+			box.scrollIntoView({ behavior: 'smooth' });
+		}
+	}
 	
 	showDeleteConfirmation(event: Event, content: TemplateRef<any>, entry: any) {
 		event.stopPropagation();
 		if (entry && !this.selectedEntryId) {
-			this.store.dispatch(new LibraryActions.SelectEntry({ id: entry.id }));
+			this.store.dispatch(new LibraryActions.SelectEntry({ id: entry.id, scrollTo: false }));
 		}
 		this.modalRef = this.modalService.open(content);
 	}
