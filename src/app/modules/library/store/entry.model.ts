@@ -26,7 +26,7 @@ export interface Entry {
 }
 
 export interface InputField {
-	value: string,
-	formControlName: string,
-	label: string
+	value: string;
+	formControlName: string;
+	label: string;
 }

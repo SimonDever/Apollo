@@ -129,19 +129,21 @@ export class LibraryService {
 	}
 
 	savePoster(entry: any) {
+		let newPosterPath = entry.poster_path;
 		if (entry.poster_path) {
 			if (entry.poster_path.startsWith(this.userDataFolder)) {
 				// image already saved locally
 			} else if (entry.poster_path.startsWith('data:image')) {
 				console.debug(`savePoster - convertDataUri(${entry.poster_path})`);
-				this.convertDataUri(entry);
+				newPosterPath = this.convertDataUri(entry);
 			} else if (entry.poster_path.startsWith('/')) {
 				console.debug(`savePoster - convertUrlPath(${entry.poster_path})`);
-				this.convertUrlPath(entry);
+				newPosterPath = this.convertUrlPath(entry);
 			}
 		} else {
 			// no image in entry
 		}
+		return newPosterPath;
 	}
 
 	createImageFile(data, path) {
@@ -164,8 +166,8 @@ export class LibraryService {
 		);
 		const ext = imageTypeDetected[1];
 		const path = `${this.userDataFolder}\\posters\\${uuid()}.${ext}`;
-		entry.poster_path = path;
 		this.writeImage(imageBuffer.data, path);
+		return path;
 	}
 	
 	convertUrlPath(entry: any) {
@@ -174,20 +176,25 @@ export class LibraryService {
 			const url = `http://image.tmdb.org/t/p/original${entry.poster_path}`;
 			const filename = entry.poster_path.substring(1);
 			const path = `${this.userDataFolder}\\posters\\${filename}`;
-			entry.poster_path = path;
 			fetch(url).then((
 				(response) => response.blob().then(
 					(data) => this.createImageFile(data, path)
 				)
 			).bind(this));
+			return path;
 		} else {
 			console.warn('no poster_path field on entry found during request to convert');
+			return '';
 		}
 	}
 
 	saveEntry(entry: any) {
-		this.savePoster(entry);
-		this.store.dispatch(new LibraryActions.UpdateEntry({ entry: entry }));
+		const newPosterPath = this.savePoster(entry);
+		const newEntry = {...entry};
+		if (entry.poster_path !== newPosterPath) {
+			newEntry.poster_path = newPosterPath;
+		}
+		this.store.dispatch(new LibraryActions.UpdateEntry({ entry: newEntry }));
 	}
 
 	createEntry(file) {
