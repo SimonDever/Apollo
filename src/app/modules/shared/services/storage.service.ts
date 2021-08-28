@@ -176,7 +176,7 @@ export class StorageService {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					console.debug('items updated: ', numberOfUpdated, entries);
+					console.debug('items updated: ', numberOfUpdated/* , entries */);
 					subscriber.next(entries);
 				}
 			}).bind(this));
@@ -258,8 +258,7 @@ export class StorageService {
 						if (err) {
 							subscriber.error(err);
 						} else {
-							console.log(`searchEntry(${input}) results:`);
-							console.log(entries);
+							console.log(`searchEntry(${input}) results:`, entries.length);
 							subscriber.next(entries);
 						}
 					});
@@ -284,7 +283,7 @@ export class StorageService {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					console.log(`searchActors(${value}) results:`, entries);
+					console.log(`searchActors(${value}) results:`, entries.length);
 					subscriber.next(entries);
 				}
 			});
@@ -304,7 +303,7 @@ export class StorageService {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					console.log(`searchGenres(${value}) results:`, entries);
+					console.log(`searchGenres(${value}) result length:`, entries.length);
 					subscriber.next(entries);
 				}
 			});
@@ -346,7 +345,7 @@ export class StorageService {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					console.log(`searchAll(${input}) results:`, entries);
+					console.log(`searchAll(${input}) results:`, entries.length);
 					subscriber.next(entries);
 				}
 			});
@@ -371,7 +370,7 @@ export class StorageService {
 				if (err) {
 					subscriber.error(err);
 				} else {
-					console.debug('storageService.cleanArrays - entries before clean', entries);
+					console.debug('storageService.cleanArrays - before clean'/* , entries */);
 					for (const entry of entries) {
 						for (const prop in entry) {
 							if (prop !== 'sort_order' && entry[prop] != null) {
@@ -392,7 +391,7 @@ export class StorageService {
 						}
 					}
 
-					console.debug('cleanArrays - entries after clean', entries);
+					console.debug('cleanArrays - entries after clean'/* , entries */);
 
 					/* this.datastore.remove({}, { multi: true}, (err, numRemoved) => {
 						if (err) {
@@ -420,7 +419,7 @@ export class StorageService {
 										console.error('cleanArray - error inserting after cleaning');
 										subscriber.error(err);
 									}
-									console.debug('cleanArray - new entries after insert (' + numAffected + '):', affectedDocuments);
+									console.debug('cleanArray - new entries after insert (' + numAffected + '):'/* , affectedDocuments */);
 									console.debug('cleanArray - ', ++i);
 									subscriber.next(affectedDocuments);
 								});
@@ -429,7 +428,7 @@ export class StorageService {
 
 						forkJoin(cleanEntries).subscribe(entries => {
 							console.debug('cleanArray - forkJoin - entries.length', entries.length);
-							console.debug('cleanArray - forkJoin - entries', entries);
+							//console.debug('cleanArray - forkJoin - entries', entries);
 							subscriber.next(entries);
 						});
 						
@@ -464,19 +463,19 @@ export class StorageService {
 						newEntries.push(entry);
 					}
 
-					console.debug('all new entries', entries);
+					console.debug('all new entries moved'/* , entries */);
 
 					this.datastore.remove({}, { multi: true}, (err1, numRemoved) => {
 						if (err1) {
 							console.error('error', err1);
 						}
 						console.debug('number removed:', numRemoved);
-						console.debug('updating entries', newEntries);
+						//console.debug('updating entries', newEntries);
 						this.datastore.insert(newEntries, (err2, entriesOut) => {
 							if (err2) {
 								subscriber.error(err2);
 							}
-							console.debug('new entries after insert: ', entriesOut);
+							console.debug('new entries after insert: ', entriesOut.length);
 							subscriber.next(entriesOut);
 						});
 					});

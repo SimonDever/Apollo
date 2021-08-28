@@ -19,9 +19,9 @@ export function reducer(state = initialState, action: LibraryActions.All): State
 			console.log('item before update', state.entities[action.payload.entry.id]);
 			console.log('updated item: ', action.payload.entry);
 			const newState = adapter.removeOne(action.payload.entry.id, state);
-			console.log('new state', newState);
+			//console.log('new state', newState);
 			const newerState = adapter.addOne(action.payload.entry, newState);
-			console.log('newer state', newerState);
+			//console.log('newer state', newerState);
 			return newerState;
 		}
 

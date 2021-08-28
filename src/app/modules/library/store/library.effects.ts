@@ -73,14 +73,14 @@ export class LibraryEffects {
 	load$: Observable<Action> = this.actions$.pipe(
 		ofType(LibraryActions.LOAD),
 		mergeMap(() => this.storageService.getAllEntries()),
-		tap(entries => console.log('load :: getAllEntries():', entries)),
+		tap(entries => console.log('load - getAllEntries() - count:', entries.length)),
 		map(entries => new LibraryActions.Loaded({ entries: entries, navigate: true })));
 
 	@Effect()
 	reload$: Observable<Action> = this.actions$.pipe(
 		ofType(LibraryActions.RELOAD),
 		map(action => (action as LibraryActions.Reload).payload.entries),
-		tap(entries => console.log('reload :: new entries:', entries)),
+		tap(entries => console.log('reload - count:', entries.length)),
 		map(entries => new LibraryActions.Loaded({ entries: entries, navigate: false })));
 
 	@Effect()

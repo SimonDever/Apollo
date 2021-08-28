@@ -144,7 +144,7 @@ export class SettingsListComponent
 	removeAllFields() {
 		this.subs.add(this.storageService.removeAllFields(this.removeFieldsData).pipe(
 			map((entries: Entry[]) => {
-				console.debug('removeAllFields - Deleting all entries from store ready to load ', entries);
+				console.debug('removeAllFields - Deleting all entries from store ready to load ', entries.length);
 				this.store.dispatch(new LibraryActions.DeleteAllEntries());
 				this.store.dispatch(new LibraryActions.NeedEntries());
 			})
@@ -384,8 +384,8 @@ export class SettingsListComponent
 		this.subs.add(this.storageService
 			.cleanArrays()
 			.pipe(
-				map((done) => {
-					console.log('cleanArrays sub result', done);
+				map((entries) => {
+					console.log('cleanArrays processed. removing and reloading all entries', entries.length);
 					this.store.dispatch(new LibraryActions.DeleteAllEntries());
 					this.store.dispatch(new LibraryActions.NeedEntries());
 				})
@@ -399,7 +399,7 @@ export class SettingsListComponent
 		this.parsedCount = 0;
 		const obj = JSON.parse(event.target.result);
 		this.estimatedCount = Object.keys(obj).length;
-		console.log('onReaderLoad :: obj: ', obj);
+		console.log('onReaderLoad :: estimatedCount: ', this.estimatedCount);
 		const newEntries = [];
 		const postersToWrite = [];
 		for (const data of obj) {

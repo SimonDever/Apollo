@@ -50,7 +50,7 @@ class vlc {
 			this._setupStatusRequests()
 
 			this.process.on('uncaughtException', function (error) {
-					console.log(error);
+					console.error(error);
 			});
 
       this.process.on('close', (code) => {
