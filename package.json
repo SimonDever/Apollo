@@ -78,6 +78,7 @@
     "electron-simple-updater": "^2.0.9",
     "jquery": "^3.4.1",
     "nedb": "^1.8.0",
+    "ng-cache-route-reuse": "0.0.8",
     "ng2-dragula": "^2.1.1",
     "ngrx-store-freeze": "^0.2.4",
     "ngx-electron": "2.2.0",

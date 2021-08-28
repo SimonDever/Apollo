@@ -8,6 +8,7 @@ import { NavigationService } from '../../../shared/services/navigation.service';
 import * as fromLibrary from '../../store';
 import { Entry } from '../../store/entry.model';
 import * as LibraryActions from '../../store/library.actions';
+import { NgCacheRouteReuseService } from 'ng-cache-route-reuse';
 
 @Component({
 	selector: 'app-entry-list',
@@ -28,6 +29,7 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 		private libraryService: LibraryService,
 		private navigationService: NavigationService,
 		private store: Store<fromLibrary.LibraryState>,
+		private cacheRouteReuseService: NgCacheRouteReuseService,
 	) {}
 
 	ngOnInit() {
@@ -45,6 +47,10 @@ export class EntryListComponent implements OnInit, OnDestroy, AfterViewInit {
 				return sortedEntries;
 			})
 		);
+
+		this.cacheRouteReuseService.onAttach(EntryListComponent).subscribe((component) => {
+			setTimeout(() => this.scrollToSelectedEntry());
+		});
 
 		/* 
 		this.subs.add(

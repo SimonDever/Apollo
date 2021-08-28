@@ -10,6 +10,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ConfigService } from './modules/shared/services/config.service';
 import { SharedModule } from './modules/shared/shared.module';
+import { NgCacheRouteReuseModule } from 'ng-cache-route-reuse';
 
 @NgModule({
 	declarations: [
@@ -22,6 +23,7 @@ import { SharedModule } from './modules/shared/shared.module';
 		HttpClientModule,
 		SharedModule.forRoot(),
 		AppRoutingModule,
+		NgCacheRouteReuseModule,
 		StoreModule.forRoot({}),
 		EffectsModule.forRoot([]),
 		StoreDevtoolsModule.instrument({

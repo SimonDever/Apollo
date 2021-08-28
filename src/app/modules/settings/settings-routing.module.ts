@@ -6,11 +6,11 @@ import { SettingsComponent } from './components/settings/settings.component';
 
 const routes: Routes = [{
 	path: '',
-	data: { title: 'Settings' },
+	data: { title: 'Settings', reuse: true },
 	component: SettingsComponent,
 	children: [{
 		path: '',
-		data: { title: 'Settings List' },
+		data: { title: 'Settings List', reuse: true },
 		component: SettingsListComponent
 	}]
 }];

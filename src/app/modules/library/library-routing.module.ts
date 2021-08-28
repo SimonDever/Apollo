@@ -11,13 +11,13 @@ const routes: Routes = [{
 	data: { title: 'Library', shouldReuse: false },
 	component: LibraryComponent,
 	children: [
-		{ path: '', data: { title: 'Entry List', shouldReuse: true }, component: EntryListComponent },
-		{ path: 'edit', data: { title: 'Edit Entry', shouldReuse: false }, component: EditEntryComponent,
+		{ path: '', data: { title: 'Entry List', reuse: true }, component: EntryListComponent },
+		{ path: 'edit', data: { title: 'Edit Entry', reuse: false }, component: EditEntryComponent,
 			children: [
-				{ path: 'metadata',	data: { title: 'Metadata Search Results', shouldReuse: false },	component: MetadataComponent}
+				{ path: 'metadata',	data: { title: 'Metadata Search Results', reuse: false },	component: MetadataComponent}
 			]
 		},
-		{ path: 'search', data: { title: 'Search Results', shouldReuse: false }, component: SearchResultsComponent },
+		{ path: 'search', data: { title: 'Search Results', reuse: false }, component: SearchResultsComponent },
 	]
 }];
 
