@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
-import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { PreloadAllModules, RouterModule, Routes, RouteReuseStrategy } from '@angular/router';
 import { PageNotFoundComponent } from './modules/shared/components/page-not-found/page-not-found.component';
+import { CustomRouteReuseStategy } from './app-router-reuse-strategy';
 
 const routes: Routes = [{
 	path: 'library',
@@ -9,7 +10,7 @@ const routes: Routes = [{
 }, {
 	path: 'settings',
 	loadChildren: () => import('../app/modules/settings/settings.module').then(m => m.SettingsModule),
-	data: { shouldReuse: false }
+	data: { shouldReuse: true }
 }, {
 	path: '',
 	redirectTo: '/library',
@@ -25,7 +26,7 @@ const routes: Routes = [{
 		preloadingStrategy: PreloadAllModules,
 		enableTracing: false
 	})],
-	/* providers: [{ provide: RouteReuseStrategy, useClass: CustomRouteReuseStategy }], */
+	providers: [{ provide: RouteReuseStrategy, useClass: CustomRouteReuseStategy }],
 	exports: [RouterModule]
 })
 export class AppRoutingModule { }

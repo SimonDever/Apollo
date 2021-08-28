@@ -11,7 +11,7 @@ const routes: Routes = [{
 	data: { title: 'Library', shouldReuse: false },
 	component: LibraryComponent,
 	children: [
-		{ path: '', data: { title: 'Entry List', shouldReuse: false }, component: EntryListComponent },
+		{ path: '', data: { title: 'Entry List', shouldReuse: true }, component: EntryListComponent },
 		{ path: 'edit', data: { title: 'Edit Entry', shouldReuse: false }, component: EditEntryComponent,
 			children: [
 				{ path: 'metadata',	data: { title: 'Metadata Search Results', shouldReuse: false },	component: MetadataComponent}
