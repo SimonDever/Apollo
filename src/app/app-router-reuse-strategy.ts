@@ -3,27 +3,37 @@ import { RouteReuseStrategy, ActivatedRouteSnapshot, DetachedRouteHandle } from 
 export class CustomRouteReuseStategy implements RouteReuseStrategy {
 	handlers: { [key: string]: DetachedRouteHandle } = {};
 
-	shouldDetach(route: ActivatedRouteSnapshot): boolean {
-		return route.data.shouldReuse || false;
+	calcKey(route: ActivatedRouteSnapshot) {
+		return route.pathFromRoot
+			.map((v) => v.url.map((segment) => segment.toString()).join('/'))
+			.filter((url) => !!url)
+			.join('/');
 	}
 
-	store(route: ActivatedRouteSnapshot, handle: {}): void {
-		if (route.data.shouldReuse) {
-			this.handlers[route.routeConfig.path] = handle;
-		}
+	shouldDetach(route: ActivatedRouteSnapshot): boolean {
+		return true;
+	}
+
+	store(route: ActivatedRouteSnapshot, handle: DetachedRouteHandle): void {
+		this.handlers[this.calcKey(route)] = handle;
 	}
 
 	shouldAttach(route: ActivatedRouteSnapshot): boolean {
-		return !!route.routeConfig && !!this.handlers[route.routeConfig.path];
+		return !!route.routeConfig && !!this.handlers[this.calcKey(route)];
 	}
 
-	retrieve(route: ActivatedRouteSnapshot): {} {
-		if (!route.routeConfig) { return null; }
-		return this.handlers[route.routeConfig.path];
+	retrieve(route: ActivatedRouteSnapshot): DetachedRouteHandle {
+		if (!route.routeConfig) {
+			return null as any;
+		}
+		if (route.routeConfig.loadChildren) {
+			Object.keys(this.handlers).forEach((key) => delete this.handlers[key]);
+			return null as any;
+		}
+		return this.handlers[this.calcKey(route)];
 	}
 
 	shouldReuseRoute(future: ActivatedRouteSnapshot, curr: ActivatedRouteSnapshot): boolean {
-		console.debug('shouldReuseRoute - ', future.data.shouldReuse);
-		return future.data.shouldReuse || false;
+		return this.calcKey(curr) === this.calcKey(future);
 	}
 }

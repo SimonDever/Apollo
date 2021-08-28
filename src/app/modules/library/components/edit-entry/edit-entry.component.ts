@@ -83,7 +83,7 @@ export class EditEntryComponent implements OnInit, OnDestroy {
 		this.subs = this.entry$.pipe(map(entry => {
 			console.debug('Edit - entry', entry);
 			if (!entry) {
-				console.error('Entry is null');
+				//console.error('Entry is null');
 			} else {
 				console.debug('entry sub changed');
 				if (!entry.title) {

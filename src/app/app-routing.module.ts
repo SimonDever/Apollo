@@ -6,7 +6,7 @@ import { CustomRouteReuseStategy } from './app-router-reuse-strategy';
 const routes: Routes = [{
 	path: 'library',
 	loadChildren: () => import('../app/modules/library/library.module').then(m => m.LibraryModule),
-	data: { shouldReuse: false }
+	data: { shouldReuse: true }
 }, {
 	path: 'settings',
 	loadChildren: () => import('../app/modules/settings/settings.module').then(m => m.SettingsModule),
