@@ -22,7 +22,7 @@
 							"src/favicon.ico",
               "src/vlc.js",
               "src/app.js",
-							"package.json"
+							"src/../package.json"
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
@@ -93,7 +93,7 @@
               "src/favicon.ico",
               "src/vlc.js",
               "src/app.js",
-							"package.json"
+							"src/../package.json"
             ],
             "scripts": [
               "node_modules/bootstrap-switch-button/dist/bootstrap-switch-button.min.js"
