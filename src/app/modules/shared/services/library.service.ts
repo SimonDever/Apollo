@@ -129,33 +129,25 @@ export class LibraryService {
 	}
 
 	savePoster(entry: any) {
-		let newPosterPath = entry.poster_path;
 		if (entry.poster_path) {
 			if (entry.poster_path.startsWith(this.userDataFolder)) {
 				// image already saved locally
 			} else if (entry.poster_path.startsWith('data:image')) {
 				console.debug(`savePoster - convertDataUri(${entry.poster_path})`);
-				newPosterPath = this.convertDataUri(entry);
+				this.convertDataUri(entry);
 			} else if (entry.poster_path.startsWith('/')) {
 				console.debug(`savePoster - convertUrlPath(${entry.poster_path})`);
-				newPosterPath = this.convertUrlPath(entry);
+				this.convertUrlPath(entry);
 			}
-		} else {
-			// no image in entry
 		}
-		return newPosterPath;
 	}
 
 	createImageFile(data, path) {
 		const reader = new FileReader();
-		reader.addEventListener(
-			'load',
-			function () {
-				const imageBuffer = this.decodeBase64Image(reader.result);
-				this.writeImage(imageBuffer.data, path);
-			}.bind(this),
-			false
-		);
+		reader.addEventListener('load', function () {
+			const imageBuffer = this.decodeBase64Image(reader.result);
+			this.writeImage(imageBuffer.data, path);
+		}.bind(this),	false);
 		reader.readAsDataURL(data);
 	}
 
@@ -166,8 +158,8 @@ export class LibraryService {
 		);
 		const ext = imageTypeDetected[1];
 		const path = `${this.userDataFolder}\\posters\\${uuid()}.${ext}`;
+		entry.poster_path = path;
 		this.writeImage(imageBuffer.data, path);
-		return path;
 	}
 	
 	convertUrlPath(entry: any) {
@@ -176,15 +168,14 @@ export class LibraryService {
 			const url = `http://image.tmdb.org/t/p/original${entry.poster_path}`;
 			const filename = entry.poster_path.substring(1);
 			const path = `${this.userDataFolder}\\posters\\${filename}`;
+			entry.poster_path = path;
 			fetch(url).then((
 				(response) => response.blob().then(
 					(data) => this.createImageFile(data, path)
 				)
 			).bind(this));
-			return path;
 		} else {
 			console.warn('no poster_path field on entry found during request to convert');
-			return '';
 		}
 	}
 
@@ -295,7 +286,7 @@ export class LibraryService {
 
 	writeImage(data, path) {
 		this.fs.writeFile(path, data, (err) => {
-			console.debug('electronService remove writeFile - image updated');
+			console.debug('electronService remove writeFile - image updated', path);
 			err ? console.log(err) : console.log('poster written to disk');
 		});
 	}
