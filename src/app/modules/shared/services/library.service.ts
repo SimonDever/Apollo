@@ -180,11 +180,8 @@ export class LibraryService {
 	}
 
 	saveEntry(entry: any) {
-		const newPosterPath = this.savePoster(entry);
+		this.savePoster(entry);
 		const newEntry = {...entry};
-		if (entry.poster_path !== newPosterPath) {
-			newEntry.poster_path = newPosterPath;
-		}
 		this.store.dispatch(new LibraryActions.UpdateEntry({ entry: newEntry }));
 	}
 
