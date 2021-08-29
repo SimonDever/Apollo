@@ -76,7 +76,7 @@
     "electron-load-devtool": "^1.2.0",
     "electron-log": "^4.2.2",
     "electron-simple-updater": "^2.0.9",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "nedb": "^1.8.0",
     "ng-cache-route-reuse": "0.0.8",
     "ng2-dragula": "^2.1.1",
