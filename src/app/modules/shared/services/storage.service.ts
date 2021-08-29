@@ -186,11 +186,13 @@ export class StorageService {
 	updateEntry(id: string, entry: Entry): Observable<Entry> {
 		console.debug(`updateEntry() entry`);
 
+		const valuesToAdd = {};
 		const valuesToRemove = {};
 		Object.entries(entry).forEach(([k, v]) => {
 			if (v == null || v === 'null') {
-				delete entry[k];
 				valuesToRemove[k] = true;
+			} else {
+				valuesToAdd[k] = v;
 			}
 		});
 

@@ -86,18 +86,19 @@ export class EditEntryComponent implements OnInit, OnDestroy {
 				//console.error('Entry is null');
 			} else {
 				console.debug('entry sub changed');
+				this.entry = { ...entry };
+				
 				if (!entry.title) {
-					entry.title = '';
+					this.entry.title = '';
 				}
 				if (!entry.poster_path) {
-					entry.poster_path = '';
+					this.entry.poster_path = '';
 				}
 				if (!entry.file) {
-					entry.file = '';
+					this.entry.file = '';
 				}
-				this.entry = { ...entry };
-				this.poster_path = entry.poster_path || '';
-				this.file = entry.file || '';
+				this.poster_path = this.entry.poster_path;
+				this.file = this.entry.file || '';
 
 				this.inputList = [];
 				Object.entries(this.entry).forEach(([key, value]) => {
